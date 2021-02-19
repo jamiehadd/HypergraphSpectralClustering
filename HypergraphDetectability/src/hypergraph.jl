@@ -41,6 +41,18 @@ function computeDegrees!(H::hypergraph)
     H.D = computeDegrees(H)
 end
 
+function countEdges(H::hypergraph, pointed = false)
+    """
+    count the number of edges in H
+    if pointed, a k-edge is counted k times
+    """
+    if pointed
+        return sum([k*length(H.E[k]) for k in keys(H.E)])    
+    else
+        return sum([length(H.E[k]) for k in keys(H.E)])
+    end
+end
+
 function countEdges(H::hypergraph)
     """
     count the number of edges in H

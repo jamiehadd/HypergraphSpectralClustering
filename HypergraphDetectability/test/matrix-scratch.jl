@@ -15,20 +15,19 @@ using Plots
 n = 500
 c₂ = 3
 c₃ = 3
-p₂ = 5/6
-p₃ = 0.5
+p₂ = 0.5
+p₃ = 1.0
 
 H = detectabilityData(n, c₂, c₃, p₂, p₃)
 
 # edge indices
 
 B = nonBacktrackingMatrix(H)
-@time E = eigs(B; nev = size(B)[1])
+@time E = eigs(B; nev = 200)
 
 ENV["GKSwstype"] = "100"
 scatter(E[1], label = "")
 scatter!([E[1][2]], label = "")
-
 
 e = real.(E[1])
 

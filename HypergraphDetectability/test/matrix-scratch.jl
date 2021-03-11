@@ -39,3 +39,18 @@ plot!(size = (500, 500))
 # partition labels, but what one should do is 
 # aggregate up to the node level and then check
 # plot(real.(E[2][:,2]))
+
+#########################
+# Reduced nonbacktracking matrix
+#########################
+
+D = HypergraphDetectability.degreeMatrix(H);
+
+J = HypergraphDetectability.sizeScalingMatrix(H);
+
+S = HypergraphDetectability.sizeAggregationMatrix(H);
+S
+
+A = HypergraphDetectability.adjacencyAggregationMatrix(H);
+
+

@@ -2,3 +2,6 @@ name = "HypergraphDetectability"
 uuid = "2dbe4ab3-0c84-4f8d-86d2-f64d6d698dce"
 authors = ["Phil Chodrow <pchodrow@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"

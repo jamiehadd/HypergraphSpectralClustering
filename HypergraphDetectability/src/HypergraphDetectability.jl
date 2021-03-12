@@ -2,6 +2,7 @@ module HypergraphDetectability
 
 import Parameters
 import SparseArrays
+import LinearAlgebra
 
 include("hypergraph.jl")
 include("samplers.jl")

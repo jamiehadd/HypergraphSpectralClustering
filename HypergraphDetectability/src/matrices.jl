@@ -86,8 +86,6 @@ function sizeAggregationMatrix(H)
 
     N = n*(k₁ - k₀ + 1)^2
 
-    println(N)
-
     Ix = zeros(Int64, N)
     Jx = zeros(Int64, N)
     Vx = zeros(Int64, N)
@@ -119,7 +117,6 @@ function adjacencyAggregationMatrix(H)
 
     for k ∈ k₀:k₁, e in keys(H.E[k]), i ∈ e, j ∈ e
         if i != j
-            println(i, " ", j)
             push!(Ix, i + (k - k₀)*n)
             push!(Jx, j + (k - k₀)*n)
             push!(Vx, H.E[k][e])
@@ -129,4 +126,17 @@ function adjacencyAggregationMatrix(H)
     S = SparseArrays.sparse(Ix, Jx, Vx)
 end
 
-# might be all we need, stack-em up and hope for the best!?!?!
+
+function reducedNonBacktrackingMatrix(H)
+    D = HypergraphDetectability.degreeMatrix(H);
+    J = HypergraphDetectability.sizeScalingMatrix(H);
+    S = HypergraphDetectability.sizeAggregationMatrix(H);
+    A = HypergraphDetectability.adjacencyAggregationMatrix(H);
+    
+    I = LinearAlgebra.UniformScaling(1)
+
+    B_ = hcat(vcat(zero(A), I - J), vcat(D*S - I, A*S + 2I - J))
+
+    return B_
+end
+

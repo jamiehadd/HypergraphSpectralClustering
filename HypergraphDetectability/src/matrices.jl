@@ -1,6 +1,11 @@
-function nonBacktrackingMatrix(H)
+function nonBacktrackingMatrix(H; k = "all")
+
+    # these are likely memory-intensive and should be reimplemented
+    # as generators
     edgeList = [e for k in keys(H.E) for e in keys(H.E[k])]
     pointedEdges = [[v, e] for e in edgeList for v in e]
+
+
     M = length(pointedEdges)
     push!.(pointedEdges, 1:M)
 
@@ -16,10 +21,67 @@ function nonBacktrackingMatrix(H)
         end
     end
 
-    B = SparseArrays.sparse(Ix, Jx, V)
+    B = SparseArrays.sparse(Ix, Jx, V, M, M)
 
     return B
 end
+
+function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))))
+    """
+    compute the size-specific nonbacktracking matrices for 
+    a nonuniform hypergraph. 
+
+    Return: Bs, an Array, whose kth entry gives B_k, the Kth nonbacktracking operator as described in the notes. The argument K can be used to restrict the values of k for which B_k is computed, although ATM Phil can't think of any reason why one would want to do this.  
+
+    Aggregated nonbacktracking matrix can be obtained by computing 
+    sum(Bs), where Bs is the return value of this function (notation needs improvement)
+
+    VERY SLOW, definitely in need of performance improvements.
+    Likely there are many unnecessary loops in here. 
+    The main issue is the necessity of assigning to each pointed edge an index (to locate it in the nonbacktracking matrix)
+    """
+    # these are likely memory-intensive and should be reimplemented
+    # as generators or something like that
+    edgeList = [[e, k] for k in keys(H.E) for e in keys(H.E[k])]
+    pointedEdges = [[v, e, k] for (e, k) in edgeList for v in e]
+
+
+    M = length(pointedEdges)
+    # index each edge by number
+    push!.(pointedEdges, 1:M)
+
+    Ix = Vector{Tuple{Int64, Int64}}()
+    Jx = Vector{Tuple{Int64, Int64}}()
+    V = Vector{Int64}()
+
+    for (v₁, e₁, k₁, i) ∈ pointedEdges, (v₂, e₂, k₂, j) ∈ pointedEdges
+        if (v₂ ∈ e₁) && (e₂ != e₁) && (v₂ != v₁) 
+            push!(Ix, (i, k₁))
+            push!(Jx, (j, k₂))
+            push!( V, 1)
+        end
+    end
+
+    B = []
+    
+    for k ∈ K
+        size_matches = [k₂ == k for (j, k₂) ∈ Jx]
+        ix = [i for (i, k₁) ∈ Ix]
+        jx = [j for (j, k₂) ∈ Jx]
+        b = SparseArrays.sparse(ix[size_matches],
+                                jx[size_matches], 
+                                V[size_matches], 
+                                M, M)
+        push!(B, b)
+    end
+
+    return B
+end
+
+
+
+
+
 
 #########################
 # Reduced nonbacktracking matrix
@@ -59,7 +121,8 @@ function degreeMatrix(H)
         Vx[i + (k-k₀)*n] = length(edges) == 0 ? 0 : sum(edges) 
     end
 
-    D = SparseArrays.sparse(Ix, Jx, Vx)
+    N = n*(k₁ - k₀ + 1)
+    D = SparseArrays.sparse(Ix, Jx, Vx, N, N)
     return D
 end
 
@@ -72,7 +135,8 @@ function sizeScalingMatrix(H)
         Vx[i + (k-k₀)*n] = k
     end
 
-    J = SparseArrays.sparse(Ix, Jx, Vx)
+    N = n*(k₁ - k₀ + 1)
+    J = SparseArrays.sparse(Ix, Jx, Vx, N, N)
     return J
 end
 
@@ -103,7 +167,8 @@ function sizeAggregationMatrix(H)
         ix += 1
     end
 
-    S = SparseArrays.sparse(Ix, Jx, Vx)
+    N = n*(k₁ - k₀ + 1)
+    S = SparseArrays.sparse(Ix, Jx, Vx, N, N)
     return S
 end
 
@@ -123,7 +188,8 @@ function adjacencyAggregationMatrix(H)
         end
     end
 
-    S = SparseArrays.sparse(Ix, Jx, Vx)
+    N = n*(k₁ - k₀ + 1)
+    S = SparseArrays.sparse(Ix, Jx, Vx, N, N)
 end
 
 

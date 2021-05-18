@@ -21,6 +21,7 @@ include("experiments.jl")
 export hypergraph
 export detectabilityData
 export nonBacktrackingMatrix
+export nonBacktrackingMatrices
 export gapExperiment
 
 export AffinityFunction

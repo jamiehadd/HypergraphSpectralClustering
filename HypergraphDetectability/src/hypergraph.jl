@@ -53,11 +53,5 @@ function countEdges(H::hypergraph, pointed = false)
     end
 end
 
-function countEdges(H::hypergraph)
-    """
-    count the number of edges in H
-    """
-    sum([length(H.E[k]) for k in keys(H.E)])
-end
-
 Base.copy(H::hypergraph) = hypergraph(H.N, H.E, H.D)
+

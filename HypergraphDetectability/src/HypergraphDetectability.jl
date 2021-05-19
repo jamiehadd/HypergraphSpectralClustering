@@ -15,6 +15,7 @@ include("HSBM.jl")
 include("samplers.jl")
 include("matrices.jl")
 include("experiments.jl")
+include("eigenstuff.jl")
 
 
 
@@ -27,5 +28,9 @@ export gapExperiment
 export AffinityFunction
 export partitionAffinityFunction
 export sampleSBM
+
+export aggregateEigenvector
+
+export computeBinaryClusters
 
 end # module

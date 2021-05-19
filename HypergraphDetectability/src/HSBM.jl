@@ -2,17 +2,6 @@
 The purpose of this module is to define a flexible stochastic blockmodel for hypergraphs. At this stage, all we are aiming to do is *sample* from the model give a partition, a group Affinity function, and a degree vector.
 """
 
-Parameters.@with_kw mutable struct hypergraph
-    """
-    A very simple hypergraph composite type, designed to hold a node list N, an edge list E, a degree sequence D,
-    """
-
-    N::Vector{Int64}
-    E::Dict{Int64, Dict}
-    D::Array{Int64, 1} = Array{Int64, 1}()
-
-end
-
 function sampleEdge(S::Vector{Int64}, Z::Vector{Int64}, ϑ::Vector{Float64}, Ω::AffinityFunction; α::Any)
     """
     Sample a Poisson number of edges on a sequence of nodes S according to the hypergraph SBM law.
@@ -74,35 +63,6 @@ function sampleEdges(Z::Dict, ϑ::Dict, Ω::AffinityFunction; α::Any, kmax::Int
     sampleEdges(Z, ϑ, Ω; α=α, kmax=kmax, kmin=kmin)
 end
 
-function computeDegrees(E::Dict{Int64, Dict}, N::Vector{Int64})
-    """
-    Compute the degree sequence of an edge list.
-    """
-
-    d = zeros(length(N))
-
-    for k in keys(E)
-        Ek = E[k]
-        for e in keys(Ek)
-            for i in e
-                d[i] += 1
-            end
-        end
-    end
-    return(d)
-end
-
-function computeDegrees(H::hypergraph)
-    return computeDegrees(H.E, H.N)
-end
-
-function computeDegrees!(H::hypergraph)
-    """
-    Compute the degree sequence of a hypergraph and store it as a field of the hypergraph.
-    """
-    H.D = computeDegrees(H)
-end
-
 function sampleSBM(args...;kwargs...)
     """
     Sample a hypergraph with specified parameters and return it with its degree sequence pre-computed. This is the primary user-facing function for sampling tasks.
@@ -118,12 +78,3 @@ function sampleSBM(args...;kwargs...)
     return(H)
 end
 
-function countEdges(H::hypergraph)
-    """
-    count the number of edges in H
-    """
-    sum([length(H.E[k]) for k in keys(H.E)])
-end
-
-
-Base.copy(H::hypergraph) = hypergraph(H.N, H.E, H.D)

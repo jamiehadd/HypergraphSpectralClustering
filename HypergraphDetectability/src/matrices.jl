@@ -26,7 +26,7 @@ function nonBacktrackingMatrix(H; k = "all")
     return B
 end
 
-function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))))
+function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices = false)
     """
     compute the size-specific nonbacktracking matrices for 
     a nonuniform hypergraph. 
@@ -55,7 +55,7 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))))
     V = Vector{Int64}()
 
     for (v₁, e₁, k₁, i) ∈ pointedEdges, (v₂, e₂, k₂, j) ∈ pointedEdges
-        if (v₂ ∈ e₁) && (e₂ != e₁) && (v₂ != v₁) 
+        if (v₂ != v₁) && (v₂ ∈ e₁) && (e₂ != e₁) 
             push!(Ix, (i, k₁))
             push!(Jx, (j, k₂))
             push!( V, 1)
@@ -75,7 +75,10 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))))
         push!(B, b)
     end
 
-    return B
+    edgeIndices = Dict(ix => (v, e) for (v, e, k, ix) ∈ pointedEdges)
+
+    return return_indices ? (B, edgeIndices) : B
+
 end
 
 

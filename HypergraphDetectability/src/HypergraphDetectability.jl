@@ -31,6 +31,7 @@ export sampleSBM
 
 export aggregateEigenvector
 
-export computeBinaryClusters
+export binaryClusters
+export degreeTensor
 
 end # module

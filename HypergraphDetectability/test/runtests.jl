@@ -18,6 +18,7 @@ p₃ = 0.7
 H = detectabilityData(n, c₂, c₃, p₂, p₃);
 
 
+
 @testset "nonbacktracking matrix" begin
 """
 compare functions for computing the entire nonBacktrackingMatrix 
@@ -72,6 +73,28 @@ since the edges may be not be consistently indexed, we do this by just comparing
     # packages up the above computations 
     # starting from the computation of the combined
     # matrix B
-    u_ = computeBinaryClusters(B, ix)
+    z = binaryClusters(B, ix)
+
+    C = degreeTensor(H, z)
 end
 
+
+## scratchwork past here
+
+
+
+# using Combinatorics
+
+# ẑ = (u_ .> 0) .+ 1
+
+# k̄ = maximum(keys(H.E))
+# ℓ = length(unique(ẑ))
+# C = zeros(k̄, ℓ, ℓ)
+
+# for k ∈ 1:k̄, e ∈ keys(H.E[k]), (i, j) ∈ combinations(e, 2)
+#         # println(i)
+#     C[k, ẑ[i], ẑ[j]] += 1
+#     C[k, ẑ[j], ẑ[i]] += 1
+# end
+
+# C

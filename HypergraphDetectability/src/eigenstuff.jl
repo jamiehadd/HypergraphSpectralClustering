@@ -39,7 +39,9 @@ end
 
 function degreeTensor(H, z)
    """
-   probably not correct yet!
+   Intended to give empirical estimates of the two-point correlations (eq. (9) in Angelini). The rs-th entry of C_k should be the average number of edges between a given node in cluster r and all nodes in cluster s. 
+
+   Probably not correct yet! Runs and has some of the correct ideas. 
    """
     k̄ = maximum(keys(H.E))
     ℓ = length(unique(z))
@@ -49,5 +51,15 @@ function degreeTensor(H, z)
         C[k, z[i], z[j]] += 1
         C[k, z[j], z[i]] += 1
     end
-    return C
+
+    q = 1/length(z) * [sum(z .== 1), sum(z .== 2)]
+
+    for k ∈ keys(H.E)
+        C[k,:,:] = C[k,:,:] ./  (length(z) * factorial(maximum([k-2, 0])))
+        C[k,:,:] = C[k,:,:] ./ (q * q')
+        # C[k,:,:] = diagm(1.0 ./ [sum(z .== 1), sum(z .== 2)]) * C[k,:,:]
+    end
+
+
+    return C/2
 end

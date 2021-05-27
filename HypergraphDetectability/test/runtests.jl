@@ -76,6 +76,14 @@ since the edges may be not be consistently indexed, we do this by just comparing
     z = binaryClusters(B, ix)
 
     C = degreeTensor(H, z)
+
+    
+    # node populations
+    
+
+
+    q .* C[2,:,:]
+    C[3,:,:]
 end
 
 

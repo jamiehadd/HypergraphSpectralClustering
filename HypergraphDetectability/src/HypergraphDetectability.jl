@@ -7,6 +7,8 @@ import SparseArrays
 import LinearAlgebra
 import DataFrames
 import Arpack
+import Kronecker
+
 
 include("hypergraph.jl")
 include("utils.jl")
@@ -33,5 +35,8 @@ export aggregateEigenvector
 
 export binaryClusters
 export degreeTensor
+
+export linearizedBPMatrix
+
 
 end # module

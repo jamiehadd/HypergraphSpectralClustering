@@ -218,3 +218,29 @@ function adjacencyMatrix(H)
     end
     return A
 end
+
+function linearizedBPMatrix(H, ẑ)
+    """
+    ideally, should give indices as well as the relevant matrices
+    """
+
+    B, ix = nonBacktrackingMatrices(H; return_indices = true)
+    c, C = degreeTensor(H, ẑ)
+
+    n = length(ẑ)
+    q = 1/n * [sum(ẑ .== i) for i in unique(ẑ)]
+
+    T = zero(C)
+    for k ∈ 1:size(C)[1]
+        T[k,:,:] = (C[k,:,:] / ((k - 1) * c[k]) .- 1) .* q
+    end
+
+    not_nan = [k for k ∈ 1:size(T)[1] if !isnan(T[k,1,1])]
+
+    Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
+    
+    BP_mat = sum(Kronecker.kronecker(T[k,:,:], Bs[k,:,:]) for k ∈ not_nan)
+
+    return BP_mat, ix
+end
+

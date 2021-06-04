@@ -85,7 +85,7 @@ since the edges may be not be consistently indexed, we do this by just comparing
 
     # sign of u should correspond to clusters, should be 50 in each one
     # random, so not a great test all things considered
-    @test sum(u .> 0) >= n/2 - 5 # should be exactly n/2, but close is ok
+    @test sum(u .> 0) >= n/2 - 10 # should be exactly n/2, but close is ok
 
     # packages up the above computations 
     # starting from the computation of the combined
@@ -104,4 +104,25 @@ end
     q = 1/n * [sum(z .== i) for i in unique(z)]
 
     @test mean([q' * ((1/(k-1))*C[k,:,:]*q) ≈ c[k] for k ∈ 2:maximum(keys(H.E))]) == 1
+end
+
+@testset "BP linearization matrix" begin
+
+    # c, C = degreeTensor(H, z)
+    # q = 1/n * [sum(z .== i) for i in unique(z)]
+
+    # T = zero(C)
+    # for k ∈ 1:size(C)[1]
+    #     T[k,:,:] = C[k,:,:] / ((k - 1) * c[k]) .* q
+    # end
+
+    # not_nan = [k for k ∈ 1:size(T)[1] if !isnan(T[k,1,1])]
+
+    # Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
+    
+    # BP_mat = sum(T[k,:,:] ⊗ Bs[k,:,:] for k ∈ not_nan)
+    
+
+    BP_mat, ix = linearizedBPMatrix(H, z)
+
 end

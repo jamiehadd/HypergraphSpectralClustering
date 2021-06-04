@@ -84,6 +84,18 @@ git-tree-sha1 = "78c4c32a2357a00a0a7d614880f02c2c6e1ec73c"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
 version = "0.23.4"
 
+[[DocStringExtensions]]
+deps = ["LibGit2", "Markdown", "Pkg", "Test"]
+git-tree-sha1 = "c5714d9bcdba66389612dc4c47ed827c64112997"
+uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+version = "0.8.2"
+
+[[Documenter]]
+deps = ["Base64", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Test", "Unicode"]
+git-tree-sha1 = "d45c163c7a3ae293c15361acc52882c0f853f97c"
+uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+version = "0.23.4"
+
 [[FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
@@ -123,6 +135,12 @@ deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
 git-tree-sha1 = "39f9712eea6bb1de783cfc9d9b1687d6272694d8"
 uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
 version = "0.7.23"
+
+[[Kronecker]]
+deps = ["Documenter", "FillArrays", "LinearAlgebra", "Random", "SparseArrays", "StatsBase", "Test"]
+git-tree-sha1 = "1c73eac80855eba3f67d223e0753ac3c97dde7cd"
+uuid = "2c470bb0-bcc8-11e8-3dad-c9649493f05e"
+version = "0.4.0"
 
 [[LibGit2]]
 deps = ["Printf"]

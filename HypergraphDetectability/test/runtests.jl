@@ -1,9 +1,25 @@
+"""
+unit tests
+to run all tests:
+
+>>> cd HypergraphDetectability
+>>> julia
+
+julia> ]
+
+pkg> activate .
+pkg> test
+
+"""
+
 using Revise
-using HypergraphDetectability
-using SparseArrays
-using LinearAlgebra
-using Arpack
 using Test
+using HypergraphDetectability
+
+# using SparseArrays
+# using LinearAlgebra
+using Arpack
+using Statistics
 ##
 
 
@@ -12,11 +28,12 @@ using Test
 n  = 100
 c₂ = 10
 c₃ = 10
-p₂ = 0.9
-p₃ = 0.7
+p₂ = 0.99
+p₃ = 0.99
 
 H = detectabilityData(n, c₂, c₃, p₂, p₃);
 
+z = 1 .+ (1:100 .> 50)
 
 
 @testset "nonbacktracking matrix" begin
@@ -56,7 +73,6 @@ and the version broken down by size
 since the edges may be not be consistently indexed, we do this by just comparing the top two eigenvalues. 
 """
 
-
     # partitioned by edge size and returning edge indices
     Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
 
@@ -68,41 +84,24 @@ since the edges may be not be consistently indexed, we do this by just comparing
     u = aggregateEigenvector(v, ix)
 
     # sign of u should correspond to clusters, should be 50 in each one
-    @test sum(u .> 0) == 50
+    # random, so not a great test all things considered
+    @test sum(u .> 0) >= n/2 - 5 # should be exactly n/2, but close is ok
 
     # packages up the above computations 
     # starting from the computation of the combined
     # matrix B
-    z = binaryClusters(B, ix)
+    # z = binaryClusters(B, ix)
 
-    C = degreeTensor(H, z)
-
-    
-    # node populations
-    
-
-
-    q .* C[2,:,:]
-    C[3,:,:]
 end
 
+@testset "degree tensor" begin
+    """
+    test of a combinatorial identity in the estimated degree tensor
+    """
 
-## scratchwork past here
+    c, C = degreeTensor(H, z)
 
+    q = 1/n * [sum(z .== i) for i in unique(z)]
 
-
-# using Combinatorics
-
-# ẑ = (u_ .> 0) .+ 1
-
-# k̄ = maximum(keys(H.E))
-# ℓ = length(unique(ẑ))
-# C = zeros(k̄, ℓ, ℓ)
-
-# for k ∈ 1:k̄, e ∈ keys(H.E[k]), (i, j) ∈ combinations(e, 2)
-#         # println(i)
-#     C[k, ẑ[i], ẑ[j]] += 1
-#     C[k, ẑ[j], ẑ[i]] += 1
-# end
-
-# C
+    @test mean([q' * ((1/(k-1))*C[k,:,:]*q) ≈ c[k] for k ∈ 2:maximum(keys(H.E))]) == 1
+end

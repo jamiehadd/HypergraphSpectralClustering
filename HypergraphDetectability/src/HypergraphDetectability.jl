@@ -16,7 +16,7 @@ include("samplers.jl")
 include("matrices.jl")
 include("experiments.jl")
 include("eigenstuff.jl")
-
+include("degrees.jl")
 
 
 export hypergraph

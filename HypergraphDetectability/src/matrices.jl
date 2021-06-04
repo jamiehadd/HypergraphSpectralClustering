@@ -209,3 +209,12 @@ function reducedNonBacktrackingMatrix(H)
     return B_
 end
 
+function adjacencyMatrix(H)
+    n = length(H.D)
+    A = zeros(n, n)
+    for k ∈ keys(H.E), e ∈ keys(H.E[k]), (i, j) ∈ Combinatorics.combinations(e, 2)
+        A[i, j] += 1
+        A[j, i] += 1
+    end
+    return A
+end

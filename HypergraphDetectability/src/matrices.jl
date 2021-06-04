@@ -239,7 +239,7 @@ function linearizedBPMatrix(H, ẑ)
 
     Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
     
-    BP_mat = sum(Kronecker.kronecker(T[k,:,:], Bs[k,:,:]) for k ∈ not_nan)
+    BP_mat = sum(Kronecker.kronecker(T[k,:,:], Bs[k]) for k ∈ not_nan)
 
     return BP_mat, ix
 end

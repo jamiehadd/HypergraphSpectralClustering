@@ -26,7 +26,7 @@ function nonBacktrackingMatrix(H; k = "all")
     return B
 end
 
-function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices = false)
+function nonBacktrackingMatrices_(H; K = sort(collect(keys(H.E))), return_indices = false)
     """
     compute the size-specific nonbacktracking matrices for 
     a nonuniform hypergraph. 
@@ -80,6 +80,64 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
     return return_indices ? (B, edgeIndices) : B
 
 end
+
+function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices = false)
+    """
+    compute the size-specific nonbacktracking matrices for 
+    a nonuniform hypergraph. 
+
+    Return: Bs, an Array, whose kth entry gives B_k, the Kth nonbacktracking operator as described in the notes. The argument K can be used to restrict the values of k for which B_k is computed, although ATM Phil can't think of any reason why one would want to do this.  
+
+    Aggregated nonbacktracking matrix can be obtained by computing 
+    sum(Bs), where Bs is the return value of this function (notation needs improvement)
+
+    Hopefully a faster version, we'll see
+    """
+    
+    # given a pointed edge, I would like to know what OTHER pointed edges
+    # are adjacent through the point. So, I would like to lookup from an edge
+    # to its point, and then from the point to the edges incident on that point. 
+
+    edgeList = [[edge, k] for k ∈ keys(H.E) for edge ∈ keys(H.E[k])]
+    pointedEdges = [pointedEdge(edge, v) for (edge, k) ∈ edgeList for v ∈ edge]
+
+    edgeIDs = Dict(i => pe for (i, pe) ∈ enumerate(pointedEdges))
+
+    incidence = Dict{Int64, Vector{Int64}}()
+    for (id, pe) ∈ edgeIDs, i ∈ pe.nodes
+        val = get(incidence, i, [])
+        append!(val, id)
+        incidence[i] = val
+    end
+
+    Ix = Vector{Int64}()
+    Jx = Vector{Int64}()
+    V  = Vector{Int64}()
+
+    for (edgeID, pe) ∈ edgeIDs, edgeID2 ∈ incidence[pe.point]
+        pe2 = edgeIDs[edgeID2]
+        if (pe2.point != pe.point) && (pe.nodes != pe2.nodes)
+            push!(Ix, edgeID)
+            push!(Jx, edgeID2)
+            push!( V, 1)
+        end
+    end
+
+    B = []
+
+    M = length(edgeIDs)
+    for k ∈ K
+        size_matches = [length(edgeIDs[j].nodes) == k for j ∈ Jx]
+        b = SparseArrays.sparse(Ix[size_matches], 
+                                Jx[size_matches], 
+                                V[size_matches],
+                                M, M)
+        push!(B, b)
+    end
+
+    return (B, edgeIDs)
+end
+
 
 
 
@@ -218,6 +276,10 @@ function adjacencyMatrix(H)
     end
     return A
 end
+
+
+
+
 
 function linearizedBPMatrix(H, ẑ)
     """

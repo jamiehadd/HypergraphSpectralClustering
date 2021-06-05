@@ -11,26 +11,36 @@ function aggregateEigenvector(v::Vector{Complex{Float64}}, ix)
     https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7446987&casa_token=JyWZL63o7IkAAAAA:g5O4PX6MDgIQZp-m-kXcaL1fC663brk3DHbv6oaOe_WwjHNiRV1ZbnbBBdIEUSSVo_dKrl29eA&tag=1
     """
 
-    n = maximum(i for (i, e) in values(ix))
-
+    nodes = unique(pe.point for pe ∈ values(ix))
+    n = length(nodes)
     u = zeros(n)
 
     for edge in keys(ix)
-        u[ix[edge][1]] += v[edge]
+        u[ix[edge].point] += v[edge]
     end
 
     return u
 end
 
-function aggregateEigenvector(B, ix)
+function aggregateEigenvector(B, ix; mode = "single")
     E = Arpack.eigs(B; nev = 2, ritzvec = true)
-
+    
     if !(imag(E[1][2]) ≈ 0)
         print("Warning: 2nd eigenvalue complex")
     end
 
+    v = E[2][:,2]
+
+    if mode == "BP"
+        M = length(ix)
+        distinct_k = size(B)[1] ÷ M
+        u = sum([aggregateEigenvector(v[((i-1)*M + 1):i*M], ix) for i ∈ distinct_k])
+        return u
+    end
+
     return aggregateEigenvector(E[2][:,2], ix)
 end
+
 
 function binaryClusters(B, ix, ϵ = 0)
     u = aggregateEigenvector(B, ix)

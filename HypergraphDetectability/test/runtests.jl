@@ -28,12 +28,12 @@ using Statistics
 n  = 100
 c₂ = 10
 c₃ = 10
-p₂ = 0.99
-p₃ = 0.99
+p₂ = 0.8
+p₃ = 0.8
 
 H = detectabilityData(n, c₂, c₃, p₂, p₃);
 
-z = 1 .+ (1:100 .> 50)
+z = 1 .+ (1:n .> n/2);
 
 
 @testset "nonbacktracking matrix" begin
@@ -49,19 +49,11 @@ since the edges may be not be consistently indexed, we do this by just comparing
     E = eigs(B; nev = 2);
 
     # partitioned up by edge size
-    Bs = nonBacktrackingMatrices(H);
+    Bs, ix = nonBacktrackingMatrices(H);
     B_ = sum(Bs)
     E_ = eigs(B_; nev = 2)
 
     @test E[1] ≈ E_[1]
-
-    # partitioned by edge size and returning edge indices
-    Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
-    B_ = sum(Bs)
-    E_ = eigs(B_; nev = 2)
-
-    @test E[1] ≈ E_[1]
-
 end
 
 
@@ -74,7 +66,7 @@ since the edges may be not be consistently indexed, we do this by just comparing
 """
 
     # partitioned by edge size and returning edge indices
-    Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
+    Bs, ix = nonBacktrackingMatrices(H);
 
     B = sum(Bs)
     E = eigs(B; nev = 2, ritzvec = true)
@@ -108,21 +100,34 @@ end
 
 @testset "BP linearization matrix" begin
 
-    # c, C = degreeTensor(H, z)
-    # q = 1/n * [sum(z .== i) for i in unique(z)]
-
-    # T = zero(C)
-    # for k ∈ 1:size(C)[1]
-    #     T[k,:,:] = C[k,:,:] / ((k - 1) * c[k]) .* q
-    # end
-
-    # not_nan = [k for k ∈ 1:size(T)[1] if !isnan(T[k,1,1])]
-
-    # Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
-    
-    # BP_mat = sum(T[k,:,:] ⊗ Bs[k,:,:] for k ∈ not_nan)
-    
-
     BP_mat, ix = linearizedBPMatrix(H, z)
 
+    # get the eigenvector corresponding to the overall linearization
+    u = aggregateEigenvector(BP_mat, ix)
+    
 end
+
+
+@testset "faster nonbacktracking matrix" begin
+
+    # the actual fast version
+    Bs, ix = nonBacktrackingMatrices(H);
+
+    # test against deprecated slow version for correctness
+    Bs2, ix2 = nonBacktrackingMatrices_(H; return_indices = true);
+    
+    B = sum(Bs)
+    B2 = sum(Bs2)
+
+    E = eigs(B; nev = 2, ritzvec = true)
+    E2 = eigs(B2; nev = 2, ritzvec = true)
+
+    @test E[1] ≈ E2[1]
+
+    v = E[2][:,2]
+
+    u = aggregateEigenvector(v, ix)
+
+end
+
+

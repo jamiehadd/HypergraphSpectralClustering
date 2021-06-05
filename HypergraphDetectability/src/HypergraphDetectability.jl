@@ -19,12 +19,13 @@ include("matrices.jl")
 include("experiments.jl")
 include("eigenstuff.jl")
 include("degrees.jl")
-
+include("edge-incidence.jl")
 
 export hypergraph
 export detectabilityData
 export nonBacktrackingMatrix
 export nonBacktrackingMatrices
+export nonBacktrackingMatrices_
 export gapExperiment
 
 export AffinityFunction
@@ -38,5 +39,6 @@ export degreeTensor
 
 export linearizedBPMatrix
 
-
+export edgeIncidence
+export pointedEdge
 end # module

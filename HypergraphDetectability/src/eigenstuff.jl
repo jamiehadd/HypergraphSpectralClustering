@@ -13,7 +13,7 @@ function aggregateEigenvector(v::Vector{Complex{Float64}}, ix)
 
     nodes = unique(pe.point for pe ∈ values(ix))
     n = length(nodes)
-    u = zeros(n)
+    u = zeros(Complex{Float64}, n)
 
     for edge in keys(ix)
         u[ix[edge].point] += v[edge]

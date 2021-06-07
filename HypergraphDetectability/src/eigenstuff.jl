@@ -26,7 +26,7 @@ function aggregateEigenvector(B, ix; mode = "single")
     E = Arpack.eigs(B; nev = 2, ritzvec = true)
     
     if !(imag(E[1][2]) ≈ 0)
-        print("Warning: 2nd eigenvalue complex")
+        println("Warning: 2nd eigenvalue complex")
     end
 
     v = E[2][:,2]

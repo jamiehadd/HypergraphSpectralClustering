@@ -7,7 +7,7 @@ import SparseArrays
 import LinearAlgebra
 import DataFrames
 import Arpack
-# import Kronecker
+import Kronecker
 
 
 include("hypergraph.jl")

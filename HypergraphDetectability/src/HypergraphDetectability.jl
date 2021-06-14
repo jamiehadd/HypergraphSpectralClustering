@@ -43,4 +43,6 @@ export linearizedBPMatrix
 export edgeIncidence
 export pointedEdge
 export reducedNonBacktrackingMatrices
+
+export reducedNonBacktrackingMatrix
 end # module

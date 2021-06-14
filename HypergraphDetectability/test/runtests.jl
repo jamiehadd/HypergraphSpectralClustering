@@ -104,7 +104,6 @@ end
 
     # get the eigenvector corresponding to the overall linearization
     u = aggregateEigenvector(BP_mat, ix)
-    
 end
 
 

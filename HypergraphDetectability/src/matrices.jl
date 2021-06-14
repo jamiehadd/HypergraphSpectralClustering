@@ -267,30 +267,76 @@ function reducedNonBacktrackingMatrix(H)
     return B_
 end
 
-function adjacencyMatrix(H)
+function adjacencyMatrix(H, k = nothing)
     n = length(H.D)
-    A = zeros(n, n)
-    for k ∈ keys(H.E), e ∈ keys(H.E[k]), (i, j) ∈ Combinatorics.combinations(e, 2)
-        A[i, j] += 1
-        A[j, i] += 1
+    Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
+    K = k === nothing ? keys(H.E) : [k]
+
+    for k ∈ K, e ∈ keys(H.E[k]), (i, j) ∈ Combinatorics.combinations(e, 2)
+        push!(Ix, i)
+        push!(Jx, j)
+        push!(Vx, 1)
+        push!(Ix, j)
+        push!(Jx, i)
+        push!(Vx, 1)
     end
+
+    A = SparseArrays.sparse(Ix, Jx, Vx, n, n)
+    
     return A
+end
+
+function degreeDiagonalMatrix(H, k = nothing)
+
+    n = length(H.D)
+
+    Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
+    K = k === nothing ? keys(H.E) : [k]
+    
+    for k ∈ K, e ∈ keys(H.E[k]), i ∈ e
+        push!(Ix, i)
+        push!(Jx, i)
+        push!(Vx, 1)
+    end
+
+    D = SparseArrays.sparse(Ix, Jx, Vx, n, n)
+    return D
+end
+
+function reducedNonBacktrackingMatrices(H, K = sort(collect(keys(H.E))))
+    Bs = []
+    for k ∈ K
+        if k == 1
+            n = length(H.D)
+            B̂ = SparseArrays.sparse([], [], [], n, n)
+            push!(Bs, B̂)
+        else
+            A = adjacencyMatrix(H, k)
+            D = degreeDiagonalMatrix(H, k)
+            I = LinearAlgebra.UniformScaling(1)
+            B̂ = hcat(vcat(zero(A), (1-k)*I), vcat(D - I, A - (k-2)*I))
+            push!(Bs, B̂)        
+        end
+    end
+    return Bs
 end
 
 
 
-
-
-function linearizedBPMatrix(H, ẑ)
+function linearizedBPMatrix(H, ẑ; reduced = false)
     """
     ideally, should give indices as well as the relevant matrices
     """
+    if reduced
+        Bs, ix = reducedNonBacktrackingMatrices(H), nothing
+    else
+        Bs, ix = nonBacktrackingMatrices(H; return_indices = true)
+    end
 
-    B, ix = nonBacktrackingMatrices(H; return_indices = true)
     c, C = degreeTensor(H, ẑ)
 
     n = length(ẑ)
-    q = 1/n * [sum(ẑ .== i) for i in unique(ẑ)]
+    q = 1/n * StatsBase.counts(ẑ)
 
     T = zero(C)
     for k ∈ 1:size(C)[1]
@@ -299,10 +345,8 @@ function linearizedBPMatrix(H, ẑ)
 
     not_nan = [k for k ∈ 1:size(T)[1] if !isnan(T[k,1,1])]
 
-    Bs, ix = nonBacktrackingMatrices(H; return_indices = true);
-    
     BP_mat = sum(Kronecker.kronecker(T[k,:,:], Bs[k]) for k ∈ not_nan)
 
-    return BP_mat, ix
+    return reduced ? BP_mat : BP_mat, ix
 end
 

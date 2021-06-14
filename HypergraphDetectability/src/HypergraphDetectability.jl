@@ -8,6 +8,7 @@ import LinearAlgebra
 import DataFrames
 import Arpack
 import Kronecker
+import StatsBase
 
 
 include("hypergraph.jl")
@@ -41,4 +42,5 @@ export linearizedBPMatrix
 
 export edgeIncidence
 export pointedEdge
+export reducedNonBacktrackingMatrices
 end # module

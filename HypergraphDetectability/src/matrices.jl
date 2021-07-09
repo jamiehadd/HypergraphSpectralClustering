@@ -349,4 +349,3 @@ function linearizedBPMatrix(H, ẑ; reduced = false)
 
     return reduced ? BP_mat : BP_mat, ix
 end
-

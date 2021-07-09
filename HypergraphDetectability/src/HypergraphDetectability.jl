@@ -1,15 +1,14 @@
 module HypergraphDetectability
 
-import Parameters
-import Combinatorics
-import Distributions
-import SparseArrays
-import LinearAlgebra
-import DataFrames
-import Arpack
-import Kronecker
-import StatsBase
-
+using Parameters
+using Combinatorics
+using Distributions
+using SparseArrays
+using LinearAlgebra
+using DataFrames
+using Arpack
+using Kronecker
+using StatsBase
 
 include("hypergraph.jl")
 include("utils.jl")

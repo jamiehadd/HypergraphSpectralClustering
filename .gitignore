@@ -1,4 +1,5 @@
 .DS_Store
 .ipynb-checkpoints
+*checkpoint*
 *.png
 *.pdf

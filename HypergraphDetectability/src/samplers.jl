@@ -17,7 +17,7 @@ function detectabilityData(n, c₂, c₃, p₂, p₃)
     m₃ = c₃*n/3
     
     # initialize edge dict
-    E = Dict(k => Dict() for k ∈ 1:3)
+    E = Dict(k => Dict() for k ∈ 2:3)
     
     # assign 2-edges
     for i ∈ 1:m₂

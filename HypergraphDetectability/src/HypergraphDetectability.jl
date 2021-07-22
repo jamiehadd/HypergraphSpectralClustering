@@ -20,6 +20,7 @@ include("experiments.jl")
 include("eigenstuff.jl")
 include("degrees.jl")
 include("edge-incidence.jl")
+include("data.jl")
 
 export hypergraph
 export detectabilityData

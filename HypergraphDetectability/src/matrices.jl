@@ -138,12 +138,6 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
     return (B, edgeIDs)
 end
 
-
-
-
-
-
-
 #########################
 # Reduced nonbacktracking matrix
 #########################
@@ -152,28 +146,32 @@ end
 # can start with kmin and kmax for simplicity, although this should
 # later be improved for computational savings
 
-
 function diagonalMatrixSkeleton(H)
-    """
-    Handy outline for constructing these matrices
-    """
-    k₀, k₁ = maximum([minimum(keys(H.E)), 2]), maximum(keys(H.E))   
-
-    n  = length(H.D)
-    N  = n*(k₁ - k₀ + 1)
+    K = sort(collect(keys(H.E)))
+    k̄ = length(K)
+    n = length(H.D)
+    N = n*k̄
 
     Ix = zeros(Int64, N)
     Jx = zeros(Int64, N)
     Vx = zeros(Int64, N)
 
-    return k₀, k₁, n, Ix, Jx, Vx
+    return K, n, Ix, Jx, Vx
 end
 
-function degreeMatrix(H)
+function degreeMatrix(H,k = nothing)
 
-    k₀, k₁, n, Ix, Jx, Vx = diagonalMatrixSkeleton(H)
+    K, n, Ix, Jx, Vx = diagonalMatrixSkeleton(H)
 
-    for i ∈ 1:n, k ∈ k₀:k₁
+    if !isnothing(k)
+        K = [k]
+        Ix = zeros(Int64, n)
+        Jx = zeros(Int64, n)
+        Vx = zeros(Int64, n)
+    end
+
+    k₀ = K[1]
+    for i ∈ 1:n, k ∈ K
         Ix[i + (k-k₀)*n] = i + (k-k₀)*n
         Jx[i + (k-k₀)*n] = i + (k-k₀)*n
 
@@ -182,89 +180,9 @@ function degreeMatrix(H)
         Vx[i + (k-k₀)*n] = length(edges) == 0 ? 0 : sum(edges) 
     end
 
-    N = n*(k₁ - k₀ + 1)
+    N = n*length(K)
     D = SparseArrays.sparse(Ix, Jx, Vx, N, N)
     return D
-end
-
-function sizeScalingMatrix(H)
-    k₀, k₁, n, Ix, Jx, Vx = diagonalMatrixSkeleton(H)
-
-    for i ∈ 1:n, k ∈ k₀:k₁
-        Ix[i + (k-k₀)*n] = i + (k-k₀)*n
-        Jx[i + (k-k₀)*n] = i + (k-k₀)*n
-        Vx[i + (k-k₀)*n] = k
-    end
-
-    N = n*(k₁ - k₀ + 1)
-    J = SparseArrays.sparse(Ix, Jx, Vx, N, N)
-    return J
-end
-
-function sizeAggregationMatrix(H)
-    """
-    Think this is also E⊗I in the case that we 
-    fully enumerate all edge sizes. 
-    """
-    k₀, k₁ = maximum([minimum(keys(H.E)), 2]), maximum(keys(H.E))    
-    n = length(H.D)
-
-    N = n*(k₁ - k₀ + 1)^2
-
-    Ix = zeros(Int64, N)
-    Jx = zeros(Int64, N)
-    Vx = zeros(Int64, N)
-    
-    ix = 1
-    for i ∈ 1:n, k ∈ k₀:k₁, k_ ∈ k₀:k₁
-
-        row = i + (k  - k₀)*n
-        col = i + (k_ - k₀)*n
-
-        Ix[ix] = row
-        Jx[ix] = col
-        Vx[ix] = 1
-
-        ix += 1
-    end
-
-    N = n*(k₁ - k₀ + 1)
-    S = SparseArrays.sparse(Ix, Jx, Vx, N, N)
-    return S
-end
-
-function adjacencyAggregationMatrix(H)
-    Ix = Vector{Int64}()
-    Jx = Vector{Int64}()
-    Vx = Vector{Int64}()
-
-    k₀, k₁ = maximum([minimum(keys(H.E)), 2]), maximum(keys(H.E))    
-    n = length(H.D)
-
-    for k ∈ k₀:k₁, e in keys(H.E[k]), i ∈ e, j ∈ e
-        if i != j
-            push!(Ix, i + (k - k₀)*n)
-            push!(Jx, j + (k - k₀)*n)
-            push!(Vx, H.E[k][e])
-        end
-    end
-
-    N = n*(k₁ - k₀ + 1)
-    S = SparseArrays.sparse(Ix, Jx, Vx, N, N)
-end
-
-
-function reducedNonBacktrackingMatrix(H)
-    D = HypergraphDetectability.degreeMatrix(H);
-    J = HypergraphDetectability.sizeScalingMatrix(H);
-    S = HypergraphDetectability.sizeAggregationMatrix(H);
-    A = HypergraphDetectability.adjacencyAggregationMatrix(H);
-    
-    I = LinearAlgebra.UniformScaling(1)
-
-    B_ = hcat(vcat(zero(A), I - J), vcat(D*S - I, A*S + 2I - J))
-
-    return B_
 end
 
 function adjacencyMatrix(H, k = nothing)
@@ -286,52 +204,49 @@ function adjacencyMatrix(H, k = nothing)
     return A
 end
 
-function degreeDiagonalMatrix(H, k = nothing)
+function adjacencyBlockMatrix(H)
+    K = sort(collect(keys(H.E)))
+    a = vcat([adjacencyMatrix(H, k) for k ∈ K]...)
+    A = hcat([a for k ∈ K]...)
+    return A
+end
 
-    n = length(H.D)
-
-    Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
-    K = k === nothing ? keys(H.E) : [k]
-    
-    for k ∈ K, e ∈ keys(H.E[k]), i ∈ e
-        push!(Ix, i)
-        push!(Jx, i)
-        push!(Vx, 1)
-    end
-
-    D = SparseArrays.sparse(Ix, Jx, Vx, n, n)
+function degreeBlockMatrix(H)
+    K = sort(collect(keys(H.E)))
+    d = vcat([degreeMatrix(H, k) for k ∈ K]...)
+    D = hcat([d for k ∈ K]...)
     return D
 end
 
-function reducedNonBacktrackingMatrices(H, K = sort(collect(keys(H.E))))
-    Bs = []
-    for k ∈ K
-        if k == 1
-            n = length(H.D)
-            B̂ = SparseArrays.sparse([], [], [], n, n)
-            push!(Bs, B̂)
-        else
-            A = adjacencyMatrix(H, k)
-            D = degreeDiagonalMatrix(H, k)
-            I = LinearAlgebra.UniformScaling(1)
-            B̂ = hcat(vcat(zero(A), (1-k)*I), vcat(D - I, A - (k-2)*I))
-            push!(Bs, B̂)        
-        end
-    end
-    return Bs
+# this seems to work, so now we know what we should prove. How to get there...
+function reducedNonBacktrackingMatrix(H)
+    K = sort(collect(keys(H.E)))
+    K = diagm(K)
+
+    n = length(H.D)
+
+    D = degreeBlockMatrix(H)
+
+    A = adjacencyBlockMatrix(H)
+
+    upperLeft = zero(D)
+    upperRight = D-I
+
+    lowerLeft = (I-K)⊗I(n)
+    lowerRight = A+(2I-K)⊗I(n)
+
+    B_ = hcat(upperLeft, upperRight)
+    B_ = vcat(B_, hcat(lowerLeft, lowerRight))
+    return B_
 end
 
-
-
-function linearizedBPMatrix(H, ẑ; reduced = false)
+function linearizedBPMatrix(H, ẑ)
     """
     ideally, should give indices as well as the relevant matrices
-    """
-    if reduced
-        Bs, ix = reducedNonBacktrackingMatrices(H), nothing
-    else
-        Bs, ix = nonBacktrackingMatrices(H; return_indices = true)
-    end
+    """    
+    Bs, ix = nonBacktrackingMatrices(H; return_indices = true)
+
+    K = sort(collect(keys(H.E)))
 
     c, C = degreeTensor(H, ẑ)
 
@@ -339,13 +254,13 @@ function linearizedBPMatrix(H, ẑ; reduced = false)
     q = 1/n * StatsBase.counts(ẑ)
 
     T = zero(C)
-    for k ∈ 1:size(C)[1]
-        T[k,:,:] = (C[k,:,:] / ((k - 1) * c[k]) .- 1) .* q
+
+    for i ∈ 1:length(K)
+        k = K[i]
+        T[i,:,:] = (C[i,:,:] / ((k - 1) * c[i]) .- 1) .* q
     end
 
-    not_nan = [k for k ∈ 1:size(T)[1] if !isnan(T[k,1,1])]
+    BP_mat = sum(Kronecker.kronecker(T[i,:,:], Bs[i]) for i ∈ 1:length(K))
 
-    BP_mat = sum(Kronecker.kronecker(T[k,:,:], Bs[k]) for k ∈ not_nan)
-
-    return reduced ? BP_mat : BP_mat, ix
+    return BP_mat, ix
 end

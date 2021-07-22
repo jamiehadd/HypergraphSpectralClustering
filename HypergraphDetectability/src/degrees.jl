@@ -4,27 +4,29 @@ function degreeTensor(H, z)
  
     Probably not correct yet! Runs and has some of the correct ideas. 
     """
-    k̄ = maximum(keys(H.E))
+    K = sort(collect(keys(H.E)))
+
     ℓ = length(unique(z))
     n = length(H.D)
 
-    c = zeros(k̄)
+    c = zero(K)
 
-    for k ∈ 1:k̄, e ∈ keys(H.E[k]), i ∈ e
-        c[k] += 1
+    for ix ∈ 1:length(K), e ∈ keys(H.E[K[ix]]), i ∈ e
+        c[ix] += 1
     end
+
     c = c ./ n
 
-    C = zeros(k̄, ℓ, ℓ)
+    C = zeros(length(K), ℓ, ℓ)
 
-    for k ∈ 1:k̄, e ∈ keys(H.E[k]), (i, j) ∈ Combinatorics.combinations(e, 2)
-        C[k, z[i], z[j]] += 1
-        C[k, z[j], z[i]] += 1
+    for ix ∈ 1:length(K), e ∈ keys(H.E[K[ix]]), (i, j) ∈ Combinatorics.combinations(e, 2)
+        C[ix, z[i], z[j]] += 1
+        C[ix, z[j], z[i]] += 1
     end
 
     counts = [sum(z .== i) for i in unique(z)]
 
-    for k ∈ keys(H.E)
+    for k ∈ 1:length(K)
         C[k,:,:] = n*C[k,:,:] ./  (counts * counts')
     end
 

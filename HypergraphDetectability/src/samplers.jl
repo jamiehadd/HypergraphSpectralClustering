@@ -71,6 +71,14 @@ function detectabilityData(n, c₂, c₃, p₂, p₃)
         end
         E[3][[s, t, v]] = get(E[3], [s, t, v], 0) + 1
     end
+
+    # restricts to simple hypergraphs at the moment...
+    # for k ∈ keys(E)
+    #     for e ∈ keys(E[k])
+    #         E[k][e] = 1
+    #     end
+    # end
+
     H = hypergraph(N = 1:n, E = E)
     computeDegrees!(H)
     return(H)

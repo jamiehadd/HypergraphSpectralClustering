@@ -1,3 +1,41 @@
+function sumEigenvector(v::Vector{Complex{Float64}}, ix, mode = "out")
+    nodes = unique(pe.point for pe ∈ values(ix))
+    
+    n = length(nodes) # number of nodes 
+    M = length(ix)    # number of pointed edges
+    
+    # number of distinct edge sizes
+    K = unique(length(pe.nodes) for pe ∈ values(ix))
+    k̄ = length(K)
+    Kix = Dict(K[i] => i for i ∈ 1:k̄)
+    # number of communities
+    ℓ = length(v) ÷ M
+
+    # outline of aggregated vector
+    u = zeros(ℓ * k̄ * n)
+
+    # populate u by looping over v
+
+    for l ∈ 1:ℓ
+        v̄ = v[(1+(l-1)*M):(l*M)]
+        for edge ∈ keys(ix)
+                k = ix[edge].nodes |> length
+            if mode == "out"
+                i = ix[edge].point
+                u[i + (Kix[k]-1)*n + (l-1)*k̄*n] += v̄[edge]            
+            elseif mode == "in"
+                for i ∈ ix[edge].nodes
+                    if i != ix[edge].point
+                        u[i + (Kix[k]-1)*n + (l-1)*k̄*n] += v̄[edge]
+                    end
+                end
+            end
+        end
+    end
+
+    return u
+end
+
 function aggregateEigenvector(v::Vector{Complex{Float64}}, ix)
     """
     given an eigenvector v of a nonbacktracking operator and edge list ix corresponding indices of v to pointed edges, compute an aggregate eigenvector of length n. 

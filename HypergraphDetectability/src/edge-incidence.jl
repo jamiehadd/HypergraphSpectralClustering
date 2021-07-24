@@ -1,5 +1,6 @@
 mutable struct pointedEdge
     nodes::Vector{Int64}
     point::Int64
-    pointedEdge(nodes, point) = (point ∈ nodes) ? new(nodes, point) : error("point not in edge")
+    eid::Int64 # id number of unpointed edge
+    pointedEdge(nodes, point, eid) = (point ∈ nodes) ? new(sort(nodes), point, eid) : error("point not in edge")
 end

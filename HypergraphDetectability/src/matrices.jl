@@ -2,7 +2,8 @@ function nonBacktrackingMatrix(H; k = "all")
 
     # these are likely memory-intensive and should be reimplemented
     # as generators
-    edgeList = [e for k in keys(H.E) for e in keys(H.E[k])]
+    # TODO: modify this so that we do multiple edges e if edge appears multiple times
+    edgeList = [e for k in keys(H.E) for (e, m) in H.E[k] for j ∈ 1:m]
     pointedEdges = [[v, e] for e in edgeList for v in e]
 
 
@@ -90,19 +91,16 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
 
     Aggregated nonbacktracking matrix can be obtained by computing 
     sum(Bs), where Bs is the return value of this function (notation needs improvement)
-
-    Hopefully a faster version, we'll see
     """
     
-    # given a pointed edge, I would like to know what OTHER pointed edges
-    # are adjacent through the point. So, I would like to lookup from an edge
-    # to its point, and then from the point to the edges incident on that point. 
-
-    edgeList = [[edge, k] for k ∈ keys(H.E) for edge ∈ keys(H.E[k])]
-    pointedEdges = [pointedEdge(edge, v) for (edge, k) ∈ edgeList for v ∈ edge]
+    edgeList = [[edge, k] for k ∈ keys(H.E) for (edge, m) ∈ H.E[k] for j ∈ 1:m]
+    push!.(edgeList, 1:length(edgeList)) 
+    pointedEdges = [pointedEdge(edge, v, eid) for (edge, k, eid) ∈ edgeList for v ∈ edge]
 
     edgeIDs = Dict(i => pe for (i, pe) ∈ enumerate(pointedEdges))
+    # println(edgeIDs)
 
+    # i => ids of edges incident to i
     incidence = Dict{Int64, Vector{Int64}}()
     for (id, pe) ∈ edgeIDs, i ∈ pe.nodes
         val = get(incidence, i, [])
@@ -114,9 +112,14 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
     Jx = Vector{Int64}()
     V  = Vector{Int64}()
 
+    # nonbacktracking logic -- check this?
     for (edgeID, pe) ∈ edgeIDs, edgeID2 ∈ incidence[pe.point]
         pe2 = edgeIDs[edgeID2]
-        if (pe2.point != pe.point) && (pe.nodes != pe2.nodes)
+        
+        if (pe2.point != pe.point) && (pe.eid != pe2.eid)
+            # print(edgeID)
+            # print(" ")
+            # println(edgeID2)
             push!(Ix, edgeID)
             push!(Jx, edgeID2)
             push!( V, 1)
@@ -190,13 +193,13 @@ function adjacencyMatrix(H, k = nothing)
     Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
     K = k === nothing ? keys(H.E) : [k]
 
-    for k ∈ K, e ∈ keys(H.E[k]), (i, j) ∈ Combinatorics.combinations(e, 2)
+    for k ∈ K, (e, m) ∈ H.E[k], (i, j) ∈ Combinatorics.combinations(e, 2)
         push!(Ix, i)
         push!(Jx, j)
-        push!(Vx, 1)
+        push!(Vx, m)
         push!(Ix, j)
         push!(Jx, i)
-        push!(Vx, 1)
+        push!(Vx, m)
     end
 
     A = SparseArrays.sparse(Ix, Jx, Vx, n, n)

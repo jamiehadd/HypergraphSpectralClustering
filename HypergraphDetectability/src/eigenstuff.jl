@@ -5,7 +5,7 @@ function sumEigenvector(v::Vector{Complex{Float64}}, ix, mode = "out")
     M = length(ix)    # number of pointed edges
     
     # number of distinct edge sizes
-    K = unique(length(pe.nodes) for pe ∈ values(ix))
+    K = sort(unique(length(pe.nodes) for pe ∈ values(ix)))
     k̄ = length(K)
     Kix = Dict(K[i] => i for i ∈ 1:k̄)
     # number of communities
@@ -14,8 +14,8 @@ function sumEigenvector(v::Vector{Complex{Float64}}, ix, mode = "out")
     # outline of aggregated vector
     u = zeros(ℓ * k̄ * n)
 
+    println(ℓ, " ", M, " ", K)
     # populate u by looping over v
-
     for l ∈ 1:ℓ
         v̄ = v[(1+(l-1)*M):(l*M)]
         for edge ∈ keys(ix)

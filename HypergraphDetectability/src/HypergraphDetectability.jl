@@ -45,4 +45,5 @@ export pointedEdge
 export reducedNonBacktrackingMatrices
 
 export reducedNonBacktrackingMatrix
+export reducedBPJacobian
 end # module

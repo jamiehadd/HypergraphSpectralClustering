@@ -14,16 +14,15 @@ function sumEigenvector(v::Vector{Complex{Float64}}, ix, mode = "out")
     # outline of aggregated vector
     u = zeros(ℓ * k̄ * n)
 
-    println(ℓ, " ", M, " ", K)
     # populate u by looping over v
     for l ∈ 1:ℓ
         v̄ = v[(1+(l-1)*M):(l*M)]
         for edge ∈ keys(ix)
                 k = ix[edge].nodes |> length
-            if mode == "out"
+            if mode == "out" # α
                 i = ix[edge].point
                 u[i + (Kix[k]-1)*n + (l-1)*k̄*n] += v̄[edge]            
-            elseif mode == "in"
+            elseif mode == "in" # β
                 for i ∈ ix[edge].nodes
                     if i != ix[edge].point
                         u[i + (Kix[k]-1)*n + (l-1)*k̄*n] += v̄[edge]

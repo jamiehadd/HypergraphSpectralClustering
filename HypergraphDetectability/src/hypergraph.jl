@@ -9,8 +9,13 @@ Parameters.@with_kw mutable struct hypergraph
     N::Vector{Int64}
     E::Dict{Int64, Dict}
     D::Array{Int64, 1} = Array{Int64, 1}()
-
+    mat::Dict{String, Array{Int64, 3}}
+    function hypergraph(N, E, D)
+        mat = Dict{String, Array{Int64, 3}}()
+        new(N, E, D, mat)
+    end
 end
+
 
 function computeDegrees(E::Dict{Int64, Dict}, N::Vector{Int64})
     """

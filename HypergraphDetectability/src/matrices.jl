@@ -149,20 +149,26 @@ end
 # can start with kmin and kmax for simplicity, although this should
 # later be improved for computational savings
 
-function diagonalMatrixSkeleton(H)
-    K = sort(collect(keys(H.E)))
+function diagonalMatrixSkeleton(N, E)
+    K = sort(collect(keys(E)))
     k̄ = length(K)
-    n = length(H.D)
-    N = n*k̄
+    n = length(N)
+    M = n*k̄
 
-    Ix = zeros(Int64, N)
-    Jx = zeros(Int64, N)
-    Vx = zeros(Int64, N)
+    Ix = zeros(Int64, M)
+    Jx = zeros(Int64, M)
+    Vx = zeros(Int64, M)
 
     return K, n, Ix, Jx, Vx
 end
 
+diagonalMatrixSkeleton(H::hypergraph) = diagonalMatrixSkeleton(H.N, H.E)     
+
+
 function degreeMatrix(H,k = nothing)
+    """
+    TODO: redo the handling of K so that it can handle missing edge sizes. 
+    """
 
     K, n, Ix, Jx, Vx = diagonalMatrixSkeleton(H)
 
@@ -266,4 +272,67 @@ function linearizedBPMatrix(H, ẑ)
     BP_mat = sum(Kronecker.kronecker(T[i,:,:], Bs[i]) for i ∈ 1:length(K))
 
     return BP_mat, ix
+end
+
+function reducedBPJacobian(H, ẑ)
+    """
+    Needs writing eventually, and a proof about why the matrix looks *exactly like this* would certainly be helpful. 
+    Also, figuring out a bit about the kernel of the transformation would be good. 
+
+    Finally, maybe we can make this faster? Pretty slow ATM e.g. on 1K nodes just to construct the matrix. 
+    """
+
+    println("Warning: although this function is written in code that appears generalizable, it has only been used and tested for hypergraphs with edge sizes 2 and 3, and with only two clusters.")
+    # edge sizes
+    K_ = sort(collect(keys(H.E))) # list of sizes
+    k̄ = length(K_)                # number of distinct sizes
+    K = diagm(K_)                 # diagonal matrix of sizes
+
+    ℓ = length(unique(ẑ))         # number of clusters
+    n = length(H.D)               # number of nodes
+
+    # graph structure matrices 
+    # degree diagonal matrix
+    d = [HypergraphDetectability.degreeMatrix(H, k) for k ∈ K_]
+    D = cat(d..., dims = (1, 2))
+
+    # adjacency block diagonal matrix
+    a = [HypergraphDetectability.adjacencyMatrix(H, k) for k ∈ K_]
+    A = cat(a..., dims = (1, 2));
+
+    # parameter array: basic version
+    c, G = degreeTensor(H, ẑ);
+    q = 1/n * StatsBase.counts(ẑ)
+    G_ = zero(G)
+    for i ∈ 1:length(K_)
+        G_[i,:,:] = (G[i,:,:] / ((K_[i] - 1) * c[i]) .- 1) .* q
+    end
+    
+
+    # expanded parameter array #1
+    dC = zeros(k̄*ℓ, k̄*ℓ)
+    for k ∈ 1:k̄, s ∈ 1:ℓ, t ∈ 1:ℓ
+        dC[k + (s-1)*k̄, k + (t-1)*k̄] = G_[k, s, t]
+    end
+    dC = sparse(dC)
+
+    # expanded parameter array #2
+    C = zeros(k̄*ℓ, k̄*ℓ)
+    for k ∈ 1:k̄, s ∈ 1:ℓ, t ∈ 1:ℓ, k_ ∈ 1:k̄
+        C[k + (s-1)*k̄, k_ + (t-1)*k̄] = G_[k, s, t]
+    end
+    C = sparse(C)
+
+    # construct main blocks 
+
+    println("forming main blocks")
+    println("d")
+    upperRight = (sparse(C ⊗ I(n)) * sparse(I(ℓ) ⊗ D) - sparse(dC ⊗ I(n)))'
+    lowerLeft  = sparse((dC * (I(ℓ)⊗(I - K))) ⊗ I(n))'
+    lowerRight = (sparse(C ⊗ I(n)) * sparse((I(ℓ) ⊗ A))   - sparse((dC*(I(ℓ)⊗(K - 2I)))⊗I(n)))'
+
+    B_ = hcat(zero(upperRight), upperRight);
+    B_ = vcat(B_, hcat(lowerLeft, lowerRight));
+
+    return B_
 end

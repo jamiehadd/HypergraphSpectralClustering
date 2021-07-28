@@ -9,6 +9,8 @@ using DataFrames
 using Arpack
 using Kronecker
 using StatsBase
+using Clustering
+
 
 include("hypergraph.jl")
 include("utils.jl")
@@ -21,6 +23,7 @@ include("eigenstuff.jl")
 include("degrees.jl")
 include("edge-incidence.jl")
 include("data.jl")
+include("clustering.jl")
 
 export hypergraph
 export detectabilityData
@@ -46,4 +49,6 @@ export reducedNonBacktrackingMatrices
 
 export reducedNonBacktrackingMatrix
 export reducedBPJacobian
+
+export NBSC
 end # module

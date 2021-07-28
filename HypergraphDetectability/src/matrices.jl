@@ -259,7 +259,7 @@ function reducedBPJacobian(H, ẑ)
     Finally, maybe we can make this faster? Pretty slow ATM e.g. on 1K nodes just to construct the matrix. 
     """
 
-    println("Warning: although this function is written in code that appears generalizable, it has only been used and tested for hypergraphs with edge sizes 2 and 3, and with only two clusters.")
+    # println("Warning: although this function is written in code that appears generalizable, it has only been used and tested for hypergraphs with edge sizes 2 and 3, and with only two clusters.")
     # edge sizes
     K_ = sort(collect(keys(H.E))) # list of sizes
     k̄ = length(K_)                # number of distinct sizes
@@ -302,9 +302,9 @@ function reducedBPJacobian(H, ẑ)
 
     # construct main blocks 
 
-    upperRight = ((C ⊗ I(n)) * (I(ℓ) ⊗ D) - sparse(dC ⊗ I(n)))'
+    upperRight = (sparse(C ⊗ I(n)) * sparse(I(ℓ) ⊗ D) - sparse(dC ⊗ I(n)))'
     lowerLeft  = sparse((dC * (I(ℓ)⊗(I - K))) ⊗ I(n))'
-    lowerRight = (sparse(C ⊗ I(n)) * sparse((I(ℓ) ⊗ A))   - sparse((dC*(I(ℓ)⊗(K - 2I)))⊗I(n)))'
+    lowerRight = (sparse(C ⊗ I(n)) * sparse((I(ℓ) ⊗ A)) - sparse((dC*(I(ℓ)⊗(K - 2I)))⊗I(n)))'
 
     B_ = hcat(zero(upperRight), upperRight);
     B_ = vcat(B_, hcat(lowerLeft, lowerRight));

@@ -145,61 +145,36 @@ end
 # Reduced nonbacktracking matrix
 #########################
 
-# Indices: run through all nodes, and then increment edge sizes
-# can start with kmin and kmax for simplicity, although this should
-# later be improved for computational savings
 
-function diagonalMatrixSkeleton(N, E)
-    K = sort(collect(keys(E)))
-    k̄ = length(K)
+function degreeMatrix(N, E, k)
+    """
+    kth degree matrix
+    """
+
     n = length(N)
-    M = n*k̄
-
-    Ix = zeros(Int64, M)
-    Jx = zeros(Int64, M)
-    Vx = zeros(Int64, M)
-
-    return K, n, Ix, Jx, Vx
-end
-
-diagonalMatrixSkeleton(H::hypergraph) = diagonalMatrixSkeleton(H.N, H.E)     
-
-
-function degreeMatrix(H,k = nothing)
-    """
-    TODO: redo the handling of K so that it can handle missing edge sizes. 
-    """
-
-    K, n, Ix, Jx, Vx = diagonalMatrixSkeleton(H)
-
-    if !isnothing(k)
-        K = [k]
-        Ix = zeros(Int64, n)
-        Jx = zeros(Int64, n)
-        Vx = zeros(Int64, n)
+    Ix = 1:n
+    Jx = 1:n
+    Vx = zeros(Int64, n)
+    
+    for (e, m) ∈ E[k], i ∈ e
+        Vx[i] += m         
     end
 
-    k₀ = K[1]
-    for i ∈ 1:n, k ∈ K
-        Ix[i + (k-k₀)*n] = i + (k-k₀)*n
-        Jx[i + (k-k₀)*n] = i + (k-k₀)*n
-
-        edges = [val for (key, val) in H.E[k] if i ∈ key]
-
-        Vx[i + (k-k₀)*n] = length(edges) == 0 ? 0 : sum(edges) 
-    end
-
-    N = n*length(K)
-    D = SparseArrays.sparse(Ix, Jx, Vx, N, N)
+    D = SparseArrays.sparse(Ix, Jx, Vx, n, n)
     return D
 end
 
-function adjacencyMatrix(H, k = nothing)
-    n = length(H.D)
-    Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
-    K = k === nothing ? keys(H.E) : [k]
+degreeMatrix(H::hypergraph, k) = H.mat["deg"][k]
 
-    for k ∈ K, (e, m) ∈ H.E[k], (i, j) ∈ Combinatorics.combinations(e, 2)
+function adjacencyMatrix(N, E, k)
+    """
+    kth adjacency matrix
+    """
+    n = length(N)
+    
+    Ix, Jx, Vx = Vector{Int64}(), Vector{Int64}(), Vector{Int64}()
+    
+    for (e, m) ∈ E[k], (i, j) ∈ Combinatorics.combinations(e, 2)
         push!(Ix, i)
         push!(Jx, j)
         push!(Vx, m)
@@ -212,6 +187,8 @@ function adjacencyMatrix(H, k = nothing)
     
     return A
 end
+
+adjacencyMatrix(H, k) = H.mat["adj"][k]
 
 function adjacencyBlockMatrix(H)
     K = sort(collect(keys(H.E)))
@@ -289,7 +266,7 @@ function reducedBPJacobian(H, ẑ)
     K = diagm(K_)                 # diagonal matrix of sizes
 
     ℓ = length(unique(ẑ))         # number of clusters
-    n = length(H.D)               # number of nodes
+    n = length(H.N)               # number of nodes
 
     # graph structure matrices 
     # degree diagonal matrix
@@ -325,9 +302,7 @@ function reducedBPJacobian(H, ẑ)
 
     # construct main blocks 
 
-    println("forming main blocks")
-    println("d")
-    upperRight = (sparse(C ⊗ I(n)) * sparse(I(ℓ) ⊗ D) - sparse(dC ⊗ I(n)))'
+    upperRight = ((C ⊗ I(n)) * (I(ℓ) ⊗ D) - sparse(dC ⊗ I(n)))'
     lowerLeft  = sparse((dC * (I(ℓ)⊗(I - K))) ⊗ I(n))'
     lowerRight = (sparse(C ⊗ I(n)) * sparse((I(ℓ) ⊗ A))   - sparse((dC*(I(ℓ)⊗(K - 2I)))⊗I(n)))'
 

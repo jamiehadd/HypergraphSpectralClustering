@@ -7,7 +7,7 @@ function degreeTensor(H, z)
     K = sort(collect(keys(H.E)))
 
     ℓ = length(unique(z))
-    n = length(H.D)
+    n = length(H.N)
 
     c = zero(K)
 

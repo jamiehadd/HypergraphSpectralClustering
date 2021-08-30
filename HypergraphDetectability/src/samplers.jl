@@ -93,6 +93,8 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
         clusters[i] = ℓ:(ℓ - 1 + N[i])
         ℓ += N[i]
     end
+
+    println(clusters)
     
     # for each hyperedge size: 
     for k ∈ 1:length(C)
@@ -114,9 +116,9 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
             # clustered case
             else
                 z = sample(1:length(N), Q)
-                choices = clusters[z]
+                choices = collect(clusters[z])
             end
-            edge = sample(nodes, k; replace = false) |> sort
+            edge = sample(choices, k; replace = false) |> sort
             E[k][edge] = get(E[k], edge, 0) + 1
         end
     end

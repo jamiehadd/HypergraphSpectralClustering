@@ -75,3 +75,52 @@ function detectabilityData(n, c₂, c₃, p₂, p₃)
     H = hypergraph(1:n, E)
     return(H)
 end
+
+
+function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
+
+    E = Dict(k => Dict() for k ∈ 1:length(C))
+
+    tot_N = sum(N)
+    nodes = collect(1:tot_N)
+
+    Q = StatsBase.Weights(N ./ sum(N))
+
+    clusters = Dict()
+
+    ℓ = 1
+    for i ∈ 1:length(N)
+        clusters[i] = ℓ:(ℓ - 1 + N[i])
+        ℓ += N[i]
+    end
+    
+    # for each hyperedge size: 
+    for k ∈ 1:length(C)
+
+        if isnan(C[k])
+            continue
+        end
+
+        # generate number of hyperedges of the appropriate size
+        m = sum(N)*C[k]/k
+
+        # number of edges to generate
+        M = Poisson(m) |> rand 
+
+        for i ∈ 1:M
+            # random case
+            if rand() > P[k]
+                choices = nodes
+            # clustered case
+            else
+                z = sample(1:length(N), Q)
+                choices = clusters[z]
+            end
+            edge = sample(nodes, k; replace = false) |> sort
+            E[k][edge] = get(E[k], edge, 0) + 1
+        end
+    end
+
+    H = hypergraph(1:tot_N, E)
+    return(H)
+end

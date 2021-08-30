@@ -27,5 +27,9 @@ function cacheMatrices(N, E)
     return Dict("adj" => A, "deg" => D)
 end
 
+function degreeVectors(H)
+    return Dict(k => collect(LinearAlgebra.diag(D)) for (k, D) ∈ H.mat["deg"])
+end
+
 Base.copy(H::hypergraph) = hypergraph(H.N, H.E, H.mat)
 

@@ -27,6 +27,7 @@ include("clustering.jl")
 
 export hypergraph
 export detectabilityData
+export plantedPartitionHypergraph
 export nonBacktrackingMatrix
 export nonBacktrackingMatrices
 export nonBacktrackingMatrices_

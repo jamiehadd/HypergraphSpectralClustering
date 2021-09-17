@@ -58,7 +58,8 @@ end
 function transform_eigenvector(v, H)
     n = length(H.N)
     k̄ = length(keys(H.E))
-    α = v[((length(v)÷2)+1):end]
+    α = v[1:(length(v)÷2)]
+    # α = v[((length(v)÷2)+1):end]
     ℓ = length(α) ÷ (n*k̄)
     U = zeros(n, ℓ)
     for i ∈ 1:n, k ∈ 1:k̄, s ∈ 1:ℓ

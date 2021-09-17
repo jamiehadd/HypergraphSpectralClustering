@@ -12,6 +12,11 @@ mutable struct hypergraph
     mat::Dict{String, Dict{Int64, SparseArrays.SparseMatrixCSC}}
     function hypergraph(N, E)
         delete!(E, 1)             # ignore size 1 edges
+        for k ∈ keys(E)
+            if length(values(E[k])) == 0
+                delete!(E,k)
+            end
+        end
         mat = cacheMatrices(N, E)
         new(N, E, mat)
     end

@@ -84,7 +84,7 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
     tot_N = sum(N)
     nodes = collect(1:tot_N)
 
-    Q = StatsBase.Weights(N ./ sum(N))
+    Q = StatsBase.Weights(N ./ tot_N)
 
     clusters = Dict()
 
@@ -94,8 +94,7 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
         ℓ += N[i]
     end
 
-    println(clusters)
-    
+    z = vcat([repeat([y], N[y]) for y ∈ 1:length(N)]...)
     # for each hyperedge size: 
     for k ∈ 1:length(C)
 
@@ -104,7 +103,7 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
         end
 
         # generate number of hyperedges of the appropriate size
-        m = sum(N)*C[k]/k
+        m = tot_N*C[k]/k
 
         # number of edges to generate
         M = Poisson(m) |> rand 
@@ -112,13 +111,17 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
         for i ∈ 1:M
             # random case
             if rand() > P[k]
-                choices = nodes
+                distinct = false
+                while !distinct
+                    edge = sample(nodes, k; replace = false) |> sort
+                    distinct = length(unique(z[edge])) > 1 
+                end
             # clustered case
             else
-                z = sample(1:length(N), Q)
-                choices = collect(clusters[z])
+                y = sample(1:length(N), Q)
+                choices = collect(clusters[y])
+                edge = sample(choices, k; replace = false) |> sort
             end
-            edge = sample(choices, k; replace = false) |> sort
             E[k][edge] = get(E[k], edge, 0) + 1
         end
     end

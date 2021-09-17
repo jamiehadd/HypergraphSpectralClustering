@@ -209,7 +209,7 @@ function reducedNonBacktrackingMatrix(H)
     K = sort(collect(keys(H.E)))
     K = diagm(K)
 
-    n = length(H.D)
+    n = length(H.N)
 
     D = degreeBlockMatrix(H)
 

@@ -43,3 +43,13 @@ end
 function poisson_pdf(x::Integer, λ::Float64)
     exp(-λ)*λ^x/factorial(big(x))
 end
+
+function projectedGraph(H)
+    E_ = Dict(2 => Dict())
+    for k ∈ keys(H.E)
+        for (e, m) ∈ H.E[k], (i, j) ∈ Combinatorics.combinations(e, 2)
+            E_[2][e] = get(E_[2], e, 0) + m
+        end
+    end
+    return hypergraph(H.N, E_)
+end

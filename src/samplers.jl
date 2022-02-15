@@ -77,7 +77,7 @@ function detectabilityData(n, c₂, c₃, p₂, p₃)
 end
 
 
-function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
+function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector; enforce_distinct = true)
 
     E = Dict(k => Dict() for k ∈ 1:length(C))
 
@@ -111,10 +111,14 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector)
         for i ∈ 1:M
             # random case
             if rand() > P[k]
-                distinct = false
-                while !distinct
+                if enforce_distinct
+                    distinct = false
+                    while !distinct
+                        edge = sample(nodes, k; replace = false) |> sort
+                        distinct = length(unique(z[edge])) > 1 
+                    end
+                else
                     edge = sample(nodes, k; replace = false) |> sort
-                    distinct = length(unique(z[edge])) > 1 
                 end
             # clustered case
             else

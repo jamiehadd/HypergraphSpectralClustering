@@ -1,5 +1,5 @@
 using Revise
-using HypergraphDetectability
+using HypergraphNB
 using Arpack
 using Clustering
 using StatsBase
@@ -21,7 +21,7 @@ function experiment_inner(N, C, P₂, P₃, P₄, projected = false, kmeans_reps
         
         H = plantedPartitionHypergraph(N, C, P; enforce_distinct = true)
         if projected
-            H = HypergraphDetectability.projectedGraph(H)
+            H = HypergraphNB.projectedGraph(H)
         end    
         # only used for estimating the degree tensor
         z = vcat([repeat([z], N[z]) for z ∈ 1:length(N)]...)
@@ -34,7 +34,7 @@ function experiment_inner(N, C, P₂, P₃, P₄, projected = false, kmeans_reps
             # ix = (imag.(E[1]) .== 0 ) .& (abs.(real.(E[1])) .> sqrt(λ₁))
             # ix = findall(ix)
 
-            V = hcat([HypergraphDetectability.transform_eigenvector(real.(E[2][:,i]), H) for i ∈ 1:2]...)
+            V = hcat([HypergraphNB.transform_eigenvector(real.(E[2][:,i]), H) for i ∈ 1:2]...)
             V = real.(V)
             V = V .> 0 # experiment
 

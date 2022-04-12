@@ -1,5 +1,5 @@
 using Revise
-using HypergraphDetectability
+using HypergraphNB
 
 using DataFrames
 using Clustering
@@ -9,7 +9,7 @@ using Arpack
 using MultivariateStats
 using TSne
 using Random
-Random.seed!(123);
+Random.seed!(1234);
 
 # make some fake data to play with 
 
@@ -24,7 +24,7 @@ H = plantedPartitionHypergraph(N, C, P);
 z = vcat([repeat([z], N[z]) for z ∈ 1:length(N)]...); # true labels
 
 B = reducedBPJacobian(H, z);
-E = Arpack.eigs(B; nev = 400);
+E = Arpack.eigs(B; nev = 5000);
 
 
 λ₁ = maximum(real.(E[1]))
@@ -37,7 +37,10 @@ library(ggforce)
 df <- tibble(R = $(real.(E[1])), C = $(imag.(E[1])))
 
 real_df <- df %>% 
-    filter(C == 0, abs(R) > sqrt($(λ₁)))
+    filter(C == 0, abs(R) > 1)
+
+other_df <- df %>% 
+    filter((C =! 0) | (abs(R) <= 1))
 
 highlight_df <- real_df %>% 
     arrange(desc(abs(R))) %>% 
@@ -45,20 +48,19 @@ highlight_df <- real_df %>%
 
 rad <- sqrt($(λ₁))
 
-
-p <- df %>% 
+p <- other_df %>% 
     ggplot() + 
-    geom_point(aes(x = R, y = C), pch = 21) + 
-    geom_point(aes(x = R, y = C), data = real_df, color = "firebrick", pch = 21) + 
+    geom_point(aes(x = R, y = C), size = .2, pch = 21, alpha = .3) + 
+    geom_point(aes(x = R, y = C), data = real_df, fill = "firebrick", pch = 21) + 
 #    geom_point(aes(x = R, y = C), data = highlight_df, pch = 21, size = 4) + 
     theme_minimal() +
     xlab(expression(Re~lambda)) + 
     ylab(expression(Im~lambda)) + 
-    geom_circle(aes(x0 = 0, y0 = 0, r = rad), color = "firebrick", linetype = "dashed") + 
+    # geom_circle(aes(x0 = 0, y0 = 0, r = rad), color = "grey", linetype = "dashed") + 
     coord_fixed() + 
     ggtitle("(a). Spectrum of BP Jacobian")
 
-ggsave("fig/spectrum.png", width = 5, height = 4)
+ggsave("fig/spectrum.png", p, width = 5, height = 4)
 
 p    
 """
@@ -66,8 +68,10 @@ p
 λ₁ = maximum(real.(E[1]))
 E[1][(imag.(E[1]) .== 0 ) .& (abs.(real.(E[1])) .> sqrt(λ₁))]
 
-E_ = E[2][:, (imag.(E[1]) .== 0 ) .& (abs.(real.(E[1])) .> sqrt(λ₁))];
-V = hcat([HypergraphDetectability.transform_eigenvector(real.(E_[:,i]), H) for i ∈ 1:size(E_)[2]]...)
+E_ = E[2][:, (imag.(E[1]) .== 0 ) .& (abs.(real.(E[1])) .> 1)];
+
+
+V = hcat([HypergraphNB.transform_eigenvector(real.(E_[:,i]), H) for i ∈ 1:size(E_)[2]]...)
 # V = 1.0*(V .> 0)   
 M = fit(PCA, V; maxoutdim=size(E_)[2])
 
@@ -95,7 +99,7 @@ q <- df %>% ggplot() +
 """
 
 function process(i)
-    U = HypergraphDetectability.transform_eigenvector(real.(E_[:,i]), H);
+    U = HypergraphNB.transform_eigenvector(real.(E_[:,i]), H);
     R"""
     df <- $U %>% 
         as.data.frame() %>%
@@ -105,7 +109,7 @@ function process(i)
         select(-name) %>% 
         mutate(value = sign(value)) %>% 
         mutate(value = ifelse(value > 0, "+", "-")) %>% 
-        mutate(evec = paste0("bold(V)[", $i, "]" ))
+        mutate(evec = paste0("tilde(bold(x))[", $i, "]" ))
     """
     return @rget df
 end

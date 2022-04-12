@@ -2,7 +2,7 @@
 unit tests
 to run all tests:
 
->>> cd HypergraphDetectability
+>>> cd HypergraphNB
 >>> julia
 
 julia> ]
@@ -14,7 +14,7 @@ pkg> test
 
 using Revise
 using Test
-using HypergraphDetectability
+using HypergraphNB
 
 # using SparseArrays
 # using LinearAlgebra

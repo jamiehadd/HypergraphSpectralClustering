@@ -270,11 +270,11 @@ function reducedBPJacobian(H, ẑ)
 
     # graph structure matrices 
     # degree diagonal matrix
-    d = [HypergraphDetectability.degreeMatrix(H, k) for k ∈ K_]
+    d = [HypergraphNB.degreeMatrix(H, k) for k ∈ K_]
     D = cat(d..., dims = (1, 2))
 
     # adjacency block diagonal matrix
-    a = [HypergraphDetectability.adjacencyMatrix(H, k) for k ∈ K_]
+    a = [HypergraphNB.adjacencyMatrix(H, k) for k ∈ K_]
     A = cat(a..., dims = (1, 2));
 
     # parameter array: basic version
@@ -338,11 +338,11 @@ function reducedBPJacobian_(H, ẑ)
 
     # graph structure matrices 
     # degree diagonal matrix
-    d = [HypergraphDetectability.degreeMatrix(H, k) for k ∈ K_]
+    d = [HypergraphNB.degreeMatrix(H, k) for k ∈ K_]
     D = cat(d..., dims = (1, 2))
 
     # adjacency block diagonal matrix
-    a = [HypergraphDetectability.adjacencyMatrix(H, k) for k ∈ K_]
+    a = [HypergraphNB.adjacencyMatrix(H, k) for k ∈ K_]
     A = cat(a..., dims = (1, 2));
 
     # parameter array: basic version

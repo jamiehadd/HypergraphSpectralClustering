@@ -4,7 +4,7 @@ function gapExperiment(n, c₂, c₃; grid₂ = 0.0:0.1:1.0, grid₃ = 0:0.1:1.0
         H = detectabilityData(n, c₂, c₃, p₂, p₃)
 
         try
-            B_ = HypergraphDetectability.reducedNonBacktrackingMatrix(H);
+            B_ = HypergraphNB.reducedNonBacktrackingMatrix(H);
             E = Arpack.eigs(B_; nev = 3);
         
             gap = abs(E[1][2]) - abs(E[1][3])

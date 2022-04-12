@@ -1,6 +1,6 @@
 using Revise
 using RCall
-using HypergraphDetectability
+using HypergraphNB
 using Arpack
 using MultivariateStats
 using StatsBase
@@ -14,12 +14,12 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
 
     label_path = "data/"*data_name*"/label-names-"*data_name*".txt"
     
-    H, z = HypergraphDetectability.read_hypergraph_data(data_name);
+    H, z = HypergraphNB.read_hypergraph_data(data_name);
     
     
     B = reducedBPJacobian(H, z);    
     E = Arpack.eigs(B; nev = nev, ritzvec = true)            
-    V = hcat([HypergraphDetectability.transform_eigenvector(real.(E[2][:,i]), H) for i ∈ 1:nev]...)
+    V = hcat([HypergraphNB.transform_eigenvector(real.(E[2][:,i]), H) for i ∈ 1:nev]...)
     
     V_ = 1.0*(V .> 0)
     M = fit(PCA, V_; maxoutdim=4)

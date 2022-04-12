@@ -12,5 +12,5 @@ throughput/binary-detection/exp-6.csv: scripts/binary-detection-experiments.jl
 fig/contact-primary-school-classes-2.png: scripts/data-clustering-viz.jl throughput/data-throughput
 	julia --project=. scripts/data-clustering-viz.jl
 
-fig/clustering-math.png: scripts/mat-sx-viz.jl
-	julia --project=. scripts/mat-sx-viz.jl
+fig/clustering-math.png: scripts/math-sx-viz.jl
+	julia --project=. scripts/math-sx-viz.jl

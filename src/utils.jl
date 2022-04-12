@@ -53,3 +53,43 @@ function projectedGraph(H)
     end
     return hypergraph(H.N, E_)
 end
+
+function read_unlabeled_data(dataname)
+    ix = Int64[]
+    open("data/$dataname/hyperedges-$dataname.txt") do f 
+        for line in eachline(f)
+            push!(ix, parse(Int64, line))
+        end
+    end
+    
+    E = Dict()
+    i = 1
+    open("data/$dataname/nverts-$dataname.txt") do f
+        for line in eachline(f)
+            m = parse(Int64, line)
+                
+            try
+                e = ix[i:(m+i-1)]
+                i += m
+
+                e = sort(e)
+                k = length(e)
+                if k ∈ keys(E)
+                    E[k][e] = get(E[k], e, 0) + 1
+                else
+                    E[k] = Dict()
+                end
+            catch er
+            end
+        end
+    end
+    
+    labels = String[]
+    open("data/$dataname/node-labels-$dataname.txt") do f
+        for line in eachline(f)
+            push!(labels, line)
+        end
+    end
+    
+    return hypergraph(unique(ix), E), labels
+end

@@ -1,8 +1,6 @@
 function degreeTensor(H, z; normalized = false)
     """
     Intended to give empirical estimates of the two-point correlations (eq. (9) in Angelini). The rs-th entry of C_k should be the average number of edges between a given node in cluster r and all nodes in cluster s. 
- 
-    Probably not correct yet! Runs and has some of the correct ideas. 
     """
     K = sort(collect(keys(H.E)))
 

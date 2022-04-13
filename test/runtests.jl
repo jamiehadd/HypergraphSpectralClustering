@@ -23,67 +23,27 @@ using Statistics
 ##
 
 
-## 
-# get some fake data to play with
-n  = 100
-c₂ = 10
-c₃ = 10
-p₂ = 0.8
-p₃ = 0.8
+N = [50, 50]
+C = [NaN, 5.0, 5.0]
+P = [NaN, 0.1, 0.9]
 
-H = detectabilityData(n, c₂, c₃, p₂, p₃);
+H = plantedPartitionHypergraph(N, C, P; enforce_distinct = true)
+z = vcat([repeat([z], N[z]) for z ∈ 1:length(N)]...)
 
-z = 1 .+ (1:n .> n/2);
+n = length(H.N)
 
+@testset "reduced nonbacktracking matrix" begin
+    
+        # "ground truth": full nonbacktracking matrix
+        B = nonBacktrackingMatrix(H);
+        E = eigs(B; nev = 2);
 
-@testset "nonbacktracking matrix" begin
-"""
-compare functions for computing the entire nonBacktrackingMatrix 
-and the version broken down by size
+        # reduced version from Ihara-Bass
+        B_ = reducedNonBacktrackingMatrix(H)
+        E_ = eigs(B_; nev = 2)
 
-since the edges may be not be consistently indexed, we do this by just comparing the top two eigenvalues. 
-"""
-
-    # "ground truth": full nonbacktracking matrix
-    B = nonBacktrackingMatrix(H);
-    E = eigs(B; nev = 2);
-
-    # partitioned up by edge size
-    Bs, ix = nonBacktrackingMatrices(H);
-    B_ = sum(Bs)
-    E_ = eigs(B_; nev = 2)
-
-    @test E[1] ≈ E_[1]
-end
-
-
-@testset "compute clusters" begin
-"""
-compare functions for computing the entire nonBacktrackingMatrix 
-and the version broken down by size
-
-since the edges may be not be consistently indexed, we do this by just comparing the top two eigenvalues. 
-"""
-
-    # partitioned by edge size and returning edge indices
-    Bs, ix = nonBacktrackingMatrices(H);
-
-    B = sum(Bs)
-    E = eigs(B; nev = 2, ritzvec = true)
-
-    v = E[2][:,2]
-
-    u = aggregateEigenvector(v, ix)
-
-    # sign of u should correspond to clusters, should be 50 in each one
-    # random, so not a great test all things considered
-    @test sum(u .> 0) >= n/2 - 10 # should be exactly n/2, but close is ok
-
-    # packages up the above computations 
-    # starting from the computation of the combined
-    # matrix B
-    # z = binaryClusters(B, ix)
-
+        # must agree by Ihara-Bass Theorem
+        @test E_[1] ≈ E[1]
 end
 
 @testset "degree tensor" begin
@@ -95,38 +55,22 @@ end
 
     q = 1/n * [sum(z .== i) for i in unique(z)]
 
-    @test mean([q' * ((1/(k-1))*C[k,:,:]*q) ≈ c[k] for k ∈ 2:maximum(keys(H.E))]) == 1
+    @test mean([q' * ((1/(k-1))*C[k-1,:,:]*q) ≈ c[k-1] for k ∈ 2:maximum(keys(H.E))]) == 1
 end
 
-@testset "BP linearization matrix" begin
+@testset "jacobian matrix" begin
+    """
+    tests related to the Jacobian matrix of the BP algorithm
+    """
 
-    BP_mat, ix = linearizedBPMatrix(H, z)
+    J = BPJacobian(H, z)
+    E = eigs(J; nev = 5);
 
-    # get the eigenvector corresponding to the overall linearization
-    u = aggregateEigenvector(BP_mat, ix)
-end
+    J_ = reducedBPJacobian(H, z)
+    E_ = eigs(J_; nev = 5);
 
-
-@testset "faster nonbacktracking matrix" begin
-
-    # the actual fast version
-    Bs, ix = nonBacktrackingMatrices(H);
-
-    # test against deprecated slow version for correctness
-    Bs2, ix2 = nonBacktrackingMatrices_(H; return_indices = true);
-    
-    B = sum(Bs)
-    B2 = sum(Bs2)
-
-    E = eigs(B; nev = 2, ritzvec = true)
-    E2 = eigs(B2; nev = 2, ritzvec = true)
-
-    @test E[1] ≈ E2[1]
-
-    v = E[2][:,2]
-
-    u = aggregateEigenvector(v, ix)
-
+    # must agree by generalized Ihara-Bass for the Jacobian
+    @test E_[1] ≈ E[1]
 end
 
 

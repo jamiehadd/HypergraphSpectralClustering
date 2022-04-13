@@ -108,7 +108,9 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector; enforce_di
         # number of edges to generate
         M = Poisson(m) |> rand 
 
-        for i ∈ 1:M
+        edges_placed = 0
+
+        while edges_placed < M
             # random case
             if rand() > P[k]
                 if enforce_distinct
@@ -126,7 +128,11 @@ function plantedPartitionHypergraph(N::Vector,  C::Vector, P::Vector; enforce_di
                 choices = collect(clusters[y])
                 edge = sample(choices, k; replace = false) |> sort
             end
-            E[k][edge] = get(E[k], edge, 0) + 1
+            if edge ∈ keys(E[k])
+                continue
+            end
+            E[k][edge] = 1
+            edges_placed += 1
         end
     end
 

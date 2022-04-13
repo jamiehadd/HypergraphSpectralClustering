@@ -1,88 +1,8 @@
-function nonBacktrackingMatrix(H; k = "all")
-
-    # these are likely memory-intensive and should be reimplemented
-    # as generators
-    # TODO: modify this so that we do multiple edges e if edge appears multiple times
-    edgeList = [e for k in keys(H.E) for (e, m) in H.E[k] for j ∈ 1:m]
-    pointedEdges = [[v, e] for e in edgeList for v in e]
-
-
-    M = length(pointedEdges)
-    push!.(pointedEdges, 1:M)
-
-    Ix = Vector{Int64}()
-    Jx = Vector{Int64}()
-    V = Vector{Int64}()
-
-    for (v₁, e₁, i) ∈ pointedEdges, (v₂, e₂, j) ∈ pointedEdges
-        if (v₂ ∈ e₁) && (e₂ != e₁) && (v₂ != v₁) 
-            push!(Ix, i)
-            push!(Jx, j)
-            push!( V, 1)
-        end
-    end
-
-    B = SparseArrays.sparse(Ix, Jx, V, M, M)
-
-    return B
+function nonBacktrackingMatrix(H)
+    return nonBacktrackingMatrices(H)[1] |> sum
 end
 
-function nonBacktrackingMatrices_(H; K = sort(collect(keys(H.E))), return_indices = false)
-    """
-    compute the size-specific nonbacktracking matrices for 
-    a nonuniform hypergraph. 
-
-    Return: Bs, an Array, whose kth entry gives B_k, the Kth nonbacktracking operator as described in the notes. The argument K can be used to restrict the values of k for which B_k is computed, although ATM Phil can't think of any reason why one would want to do this.  
-
-    Aggregated nonbacktracking matrix can be obtained by computing 
-    sum(Bs), where Bs is the return value of this function (notation needs improvement)
-
-    VERY SLOW, definitely in need of performance improvements.
-    Likely there are many unnecessary loops in here. 
-    The main issue is the necessity of assigning to each pointed edge an index (to locate it in the nonbacktracking matrix)
-    """
-    # these are likely memory-intensive and should be reimplemented
-    # as generators or something like that
-    edgeList = [[e, k] for k in keys(H.E) for e in keys(H.E[k])]
-    pointedEdges = [[v, e, k] for (e, k) in edgeList for v in e]
-
-
-    M = length(pointedEdges)
-    # index each edge by number
-    push!.(pointedEdges, 1:M)
-
-    Ix = Vector{Tuple{Int64, Int64}}()
-    Jx = Vector{Tuple{Int64, Int64}}()
-    V = Vector{Int64}()
-
-    for (v₁, e₁, k₁, i) ∈ pointedEdges, (v₂, e₂, k₂, j) ∈ pointedEdges
-        if (v₂ != v₁) && (v₂ ∈ e₁) && (e₂ != e₁) 
-            push!(Ix, (i, k₁))
-            push!(Jx, (j, k₂))
-            push!( V, 1)
-        end
-    end
-
-    B = []
-    
-    for k ∈ K
-        size_matches = [k₂ == k for (j, k₂) ∈ Jx]
-        ix = [i for (i, k₁) ∈ Ix]
-        jx = [j for (j, k₂) ∈ Jx]
-        b = SparseArrays.sparse(ix[size_matches],
-                                jx[size_matches], 
-                                V[size_matches], 
-                                M, M)
-        push!(B, b)
-    end
-
-    edgeIndices = Dict(ix => (v, e) for (v, e, k, ix) ∈ pointedEdges)
-
-    return return_indices ? (B, edgeIndices) : B
-
-end
-
-function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices = false)
+function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_ix = false)
     """
     compute the size-specific nonbacktracking matrices for 
     a nonuniform hypergraph. 
@@ -98,7 +18,6 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
     pointedEdges = [pointedEdge(edge, v, eid) for (edge, k, eid) ∈ edgeList for v ∈ edge]
 
     edgeIDs = Dict(i => pe for (i, pe) ∈ enumerate(pointedEdges))
-    # println(edgeIDs)
 
     # i => ids of edges incident to i
     incidence = Dict{Int64, Vector{Int64}}()
@@ -122,7 +41,7 @@ function nonBacktrackingMatrices(H; K = sort(collect(keys(H.E))), return_indices
             # println(edgeID2)
             push!(Ix, edgeID)
             push!(Jx, edgeID2)
-            push!( V, 1)
+            push!(V, 1)
         end
     end
 
@@ -226,11 +145,11 @@ function reducedNonBacktrackingMatrix(H)
     return B_
 end
 
-function linearizedBPMatrix(H, ẑ)
+function BPJacobian(H, ẑ; return_ix = false)
     """
     ideally, should give indices as well as the relevant matrices
     """    
-    Bs, ix = nonBacktrackingMatrices(H; return_indices = true)
+    Bs, ix = nonBacktrackingMatrices(H; return_ix = true)
 
     K = sort(collect(keys(H.E)))
 
@@ -248,7 +167,11 @@ function linearizedBPMatrix(H, ẑ)
 
     BP_mat = sum(Kronecker.kronecker(T[i,:,:], Bs[i]) for i ∈ 1:length(K))
 
-    return BP_mat, ix
+    if return_ix
+        return BP_mat, ix
+    end
+
+    return BP_mat
 end
 
 function reducedBPJacobian(H, ẑ)

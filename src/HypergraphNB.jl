@@ -42,7 +42,7 @@ export aggregateEigenvector
 export binaryClusters
 export degreeTensor
 
-export linearizedBPMatrix
+export BPJacobian
 
 export edgeIncidence
 export pointedEdge

@@ -194,3 +194,11 @@ P₄ = 0.0:δ:1.0
 
 experiment(N, C, P₂, P₃, P₄, true, n_reps, "exp-6")
 experiment(N, C, P₂, P₃, P₄, false, n_reps, "exp-6")
+
+##########################################
+# SEVENTH EXPERIMENT: using the vanilla nonbacktracking matrix rather than the BP Jacobian
+##########################################
+
+
+
+

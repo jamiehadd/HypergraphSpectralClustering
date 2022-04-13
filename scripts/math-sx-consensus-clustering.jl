@@ -8,6 +8,7 @@ using Revise
 using Random 
 using DelimitedFiles
 
+include("scripts/utils.jl")
 
 function experiment(H, n_groups, n_rounds = 1, nev=10, km_iter = 10, projected = false)
     if projected
@@ -37,12 +38,6 @@ function experiment(H, n_groups, n_rounds = 1, nev=10, km_iter = 10, projected =
     return M
 end
 
-function clearDir!(path)
-    if isdir(path)
-        Base.Filesystem.rm(path, recursive = true)
-    end
-    Base.Filesystem.mkpath(path)
-end
 
 
 Random.seed!(54321)

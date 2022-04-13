@@ -33,14 +33,16 @@ z = vcat([repeat([z], N[z]) for z ∈ 1:length(N)]...)
 n = length(H.N)
 
 @testset "reduced nonbacktracking matrix" begin
-    
+    """
+    test of the generalized Ihara-Bass formula for the hypergraph nonbacktracking matrix
+    """
         # "ground truth": full nonbacktracking matrix
         B = nonBacktrackingMatrix(H);
-        E = eigs(B; nev = 2);
+        E = eigs(B; nev = 5);
 
         # reduced version from Ihara-Bass
         B_ = reducedNonBacktrackingMatrix(H)
-        E_ = eigs(B_; nev = 2)
+        E_ = eigs(B_; nev = 5)
 
         # must agree by Ihara-Bass Theorem
         @test E_[1] ≈ E[1]
@@ -60,7 +62,7 @@ end
 
 @testset "jacobian matrix" begin
     """
-    tests related to the Jacobian matrix of the BP algorithm
+    test of the generalized Ihara-Bass formula for the BP Jacobian
     """
 
     J = BPJacobian(H, z)

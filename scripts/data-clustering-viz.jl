@@ -6,8 +6,10 @@ using MultivariateStats
 using StatsBase
 using DataFrames
 
+
+
 function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA = false)
-    
+
     path      = "throughput/data-throughput/"*data_name*".csv"
     proj_path = "throughput/data-throughput/"*data_name*"-projected.csv"
 
@@ -15,7 +17,6 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
     label_path = "data/"*data_name*"/label-names-"*data_name*".txt"
     
     H, z = HypergraphNB.read_hypergraph_data(data_name);
-    
     
     B = reducedBPJacobian(H, z);    
     E = Arpack.eigs(B; nev = nev, ritzvec = true)            
@@ -59,10 +60,8 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
     library(patchwork)
     library(ggforce)
     
-    
     df  <- read_csv($(path)) %>% mutate(projected = "Hypergraph")
     df_ <- read_csv($(proj_path)) %>% mutate(projected = "Projected graph")
-    
     
     df <- df %>% 
         rbind(df_) %>% 
@@ -96,15 +95,15 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
         scale_y_continuous(limits = c(NA, 1)) + 
         ggtitle(paste("Cluster recovery with", $(nev_to_plot), "eigenvectors")) 
     
+
+    node_labels <- read_csv($(label_path), col_names = c("name")) %>% 
+        mutate(id = row_number())
+
     if($show_PCA){
         df <- tibble(z = $z, m1 = $(M.proj[:,1]), m2 = $(M.proj[:,2])) 
 
-        labels <- read_csv($(label_path), col_names = c("name")) %>% 
-            mutate(id = row_number())
-
-        
         q <- df %>% 
-            left_join(labels, by = c("z" = "id")) %>%  
+            left_join(node_labels, by = c("z" = "id"), copy = TRUE) %>%  
             ggplot() + 
             aes(x = m1, y = m2, color = name) + 
             # ggforce::geom_mark_hull(aes(fill = name), alpha = 0.2) + 
@@ -129,7 +128,6 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
         aes(x = factor(ngroups), y = obj, group = projected) +
         geom_line(aes(linetype = projected), color = "firebrick") +     
         geom_point(color = "firebrick", pch = 21, fill = "white") + 
-#        geom_point(color = "darkslategray", pch = 21, fill = "black", data = best_df) + 
         theme_bw() + 
         theme(strip.background = element_blank(),
               legend.position = "bottom",
@@ -143,9 +141,10 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
         scale_y_continuous(limits = c(NA, 1)) + 
         ggtitle(paste("Scree plot with", $(nev_to_plot), "eigenvectors")) 
     }
-    
+
     r <- $(DF) %>% 
-        left_join(labels, by = c("id" = "id")) %>% 
+        tibble() %>% 
+        left_join(node_labels, by = c("id" = "id"), copy = TRUE) %>% 
         ggplot() + 
         aes(x = K, y = value, color = name, group = name) + 
         geom_line() + 
@@ -171,8 +170,9 @@ function createViz(data_name, figure_path; nev = 30, nev_to_plot = 10, show_PCA 
     """
 end
 
+
 for i ∈ 1:2
-    show_PCA = i == 1
+    show_PCA = i == 2
 
     data_name = "SN-congress-bills"
     createViz(data_name, "fig/$(data_name)-$i.png", nev_to_plot = 10, show_PCA = show_PCA)

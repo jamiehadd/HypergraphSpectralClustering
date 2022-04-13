@@ -174,7 +174,7 @@ make_affine_heatmap <- function(path, l, k_1, k_2, c_1, c_2){
     df <- read_csv(path)
 
     df <- df %>%
-        group_by(P_2, P_3, EV) %>% 
+        group_by(P_2, P_3) %>% 
         summarise(ARI = mean(ARI, na.rm = T))
 
     p <- df %>% 
@@ -253,16 +253,14 @@ k_2  <- 3
 c_1  <- 5
 c_2  <- 5
 
-path <- "throughput/vanilla-heatmap.csv"
+path <- "throughput/bulk-throughput/exp-vanilla.csv"
 
 V_0 <- make_affine_heatmap(path, l, k_1, k_2, c_1, c_2)
 
-
-
-V_0[[1]] + ggtitle("(a).") + 
+p <- V_0[[1]] + ggtitle("(a).") + 
     V_1[[1]] + ggtitle("(b).") +
     V_3[[1]] + ggtitle("(c).") +
     V_4[[1]] + ggtitle("(d).") +
     plot_layout(guides = 'collect') 
 
-ggsave("fig/4-heatmaps.png", dpi = 300, height = 7, width = 8)
+ggsave("fig/4-heatmaps.png", p, dpi = 300, height = 7, width = 8)

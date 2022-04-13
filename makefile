@@ -16,7 +16,7 @@ clean:
 	rm -f fig/contact-high-school-classes-1.png
 	rm -f fig/contact-high-school-classes-2.png
 
-fig/4-heatmaps.png: scripts/binary-detection-viz.R throughput/binary-detection/exp-6.csv throughput/binary-detection/exp-vanilla.csv
+fig/4-heatmaps.png: scripts/binary-detection-viz.R throughput/bulk-throughput/exp-6.csv throughput/bulk-throughput/exp-vanilla.csv
 	Rscript $<
 
 fig/algorithm-demo.png: scripts/pipeline-viz.jl
@@ -31,5 +31,8 @@ throughput/bulk-throughput/exp-vanilla.csv: scripts/binary-detection-vanilla.jl
 fig/contact-primary-school-classes-1.png: scripts/data-clustering-viz.jl throughput/data-throughput
 	$(JULIA) $<
 
-fig/clustering-math.png: scripts/math-sx-viz.jl
+fig/clustering-math.png: scripts/math-sx-viz.jl throughput/math-sx
+	$(JULIA) $<
+
+throughput/math-sx: scripts/math-sx.jl
 	$(JULIA) $<

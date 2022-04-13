@@ -7,7 +7,7 @@ using LinearAlgebra
 using Revise
 using Random 
 using DelimitedFiles
-
+include("utils.jl")
 
 function experiment(H, n_groups, n_rounds = 1, nev=10, km_iter = 10, projected = false)
     if projected
@@ -44,16 +44,9 @@ Random.seed!(54321)
 
 base_dir = "throughput/math-sx"
 
-if !isdir(base_dir)
-    Base.Filesystem.mkpath(base_dir)
-end
-
 for suffix ∈ ["graph", "hypergraph"]
     path = base_dir*"/"*suffix
-    if isdir(path)
-        Base.Filesystem.rm(path, recursive = true)
-    end
-    Base.Filesystem.mkpath(path)
+    clearDir!(path)
 end
 
 H, labels = HypergraphNB.read_unlabeled_data("tags-math-sx");
